@@ -1,0 +1,62 @@
+{
+  "summary": "First full e2e test of Adore luxury lighting ecommerce. Backend: created /app/backend/tests/backend_test.py with 36 pytest cases covering health, razorpay config, products (list/slug/filters/search), auth (register/login/me/negative), admin product CRUD with GET-verified persistence, file upload + serving, wishlist, orders (COD create -> track -> admin list -> /orders/mine), razorpay-disabled fallback, newsletter, inquiries. 36/36 passed. Frontend (Playwright, 1920x1080 + 390x844): verified home (hero, 8 category links, trust strip, festive banner, brand story, new arrivals, 3 bundle tiles, Instagram grid, press strip, 0 broken images), newsletter popup at ~12s + submit, footer newsletter, search overlay -> results -> PDP nav, PDP (gallery, 4.7/3 reviews, warm/cool toggle, qty, add-to-cart toast, cart badge, trust badges, wishlist login prompt), category page (filters price/finish/style + sort re-order), cart (qty +/- updates total, remove, checkout CTA), COD checkout e2e -> /track?order=ADRB643CA52 with stages + item list + cart cleared, invalid order toast, auth register/logout/login/wrong-password, admin login -> /admin, admin 3 tabs, product create/edit/delete, image upload (preview + served on PDP), contact (4 socials with correct URLs, tel/mailto/wa.me, Google Maps iframe, form submit), store locator (12 cities), bespoke + trade inquiry submit, wishlist page, legal pages, mobile menu (14 links). Found 2 HIGH issues (checkout total mismatch, no 404 route) plus several design/content issues.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/products", "issue": "No slug uniqueness check - two products can share a slug; GET /api/products/{slug} then returns an arbitrary one. Add a unique index on products.slug and return 409 on conflict."},
+      {"endpoint": "GET /api/products", "issue": "No pagination; hard-capped at to_list(500). Will silently truncate as the catalogue grows."},
+      {"endpoint": "POST /api/orders", "issue": "Server trusts client-supplied `total` instead of recomputing from item prices x quantity. A client can post any amount. Server should compute total (and shipping) authoritatively."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Checkout.jsx", "issue": "TOTAL MISMATCH: summary shows Total = subtotal + shipping (e.g. Rs 18,500 + Rs 1,200 = Rs 19,700) but the POST /api/orders payload sends `total` = subtotal only (Rs 18,500). Order record and /track both show Rs 18,500, so the shipping charge shown to the customer is never captured.", "selector": "[data-testid='place-order-btn']", "priority": "HIGH"},
+      {"component": "App.js routing", "issue": "No catch-all 404 route. Any unknown URL (e.g. /privacy, /this-route-does-not-exist) renders a completely blank white page - no nav, no footer, body innerText length 0. Add <Route path='*' element={<NotFound/>}/> inside the Layout route.", "selector": "n/a", "priority": "HIGH"},
+      {"component": "NewsletterPopup.jsx", "issue": "Popup is mounted globally and fires on every page including /admin, /cart and /checkout. On /admin it covers the whole viewport (fixed inset-0 z-[70]) and Playwright confirmed it intercepts pointer events on admin Edit/Delete/Upload controls until dismissed. Suppress it on /admin, /checkout and /cart.", "selector": "[data-testid='popup-close']", "priority": "MEDIUM"},
+      {"component": "Nav.jsx", "issue": "At 1920px the gap between the 'Shop by Room' link and the 'Adore' logo is only 5.7px, so the logo's left serif visually collides with the link text. The logo also sits off-centre (x=917 vs viewport centre 960) because the left nav list and right icon group are unbalanced flex-1 columns.", "selector": "[data-testid='nav-rooms'] / [data-testid='nav-logo']", "priority": "MEDIUM"},
+      {"component": "Contact.jsx", "issue": "Invalid phone (e.g. '12345') is blocked only by the native input pattern - the browser shows a transient 'Please match the requested format.' bubble and no inline error text renders. The JS toast validation branch in submit() is therefore unreachable. Add a visible inline error message.", "selector": "[data-testid='contact-form-phone']", "priority": "LOW"},
+      {"component": "Track.jsx", "issue": "Input placeholder is 'ADR-XXXXXXXX' but real order numbers have no hyphen (e.g. ADRB643CA52), which will make users mistype.", "selector": "[data-testid='track-order-input']", "priority": "LOW"},
+      {"component": "Legal.jsx", "issue": "Privacy Policy body still contains the placeholder email 'hello@adore.com' instead of the real salesadorelighting@gmail.com.", "selector": "/legal/privacy", "priority": "LOW"},
+      {"component": "Category.jsx", "issue": "Result count renders '1 pieces' - needs singular/plural handling.", "selector": ".text on /shop/architectural", "priority": "LOW"},
+      {"component": "Rooms.jsx / App.js", "issue": "Room links use an unslugified capitalised param (/rooms/Living). Works but is inconsistent with /shop/<lowercase-slug> URLs.", "selector": "a[href^='/rooms/']", "priority": "LOW"}
+    ],
+    "integration_issues": [
+      {"flow": "Cart -> Checkout totals", "issue": "Cart page shows Total = subtotal with 'Shipping: Calculated at checkout', then Checkout silently adds Rs 1,200 for orders under Rs 50,000 which is then not sent to the backend. The three surfaces (cart, checkout, saved order) show three different totals.", "affected_selectors": ["[data-testid='cart-total']", "[data-testid='place-order-btn']"]}
+    ],
+    "design_issues": [
+      {"screen": "Home hero", "issues": ["'SPRING EDITION - 2026' eyebrow text and the 'BESPOKE COMMISSIONS' secondary CTA are light/white text placed directly over a very bright interior photo with no scrim - both are close to illegible. Add a gradient overlay or darken the image.", "Hero image is a generic living room with a large TV and fireplace; no lighting fixture is the subject, which is off-brand for a luxury lighting storefront."]},
+      {"screen": "Product catalogue (all grids/PDP)", "issues": ["Only 6 unique image URLs are used across all 12 seeded products. Both chandeliers (Solene Cascade and Duplex Grand) show the IDENTICAL photo side-by-side on /shop/chandeliers; one photo is reused by 3 products (Halo Disc Wall Sconce, Terra Bollard Outdoor, Nook Reading Wall Light). Several images do not depict the product at all (e.g. 'Linea Cove Architectural' shows a lounge with a TV, 'Aether Flush Ceiling' reuses a chandelier photo)."]},
+      {"screen": "Nav (desktop 1920)", "issues": ["Logo/nav collision and off-centre logo (see ui_bugs)."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/backend_test.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "HIGH: Fix Checkout total - either include shipping in the `total` sent to POST /api/orders (and add a shipping field to the Order model) or stop displaying shipping in the checkout total. Best fix: compute total + shipping server-side from item prices.",
+    "HIGH: Add a catch-all 404 route so unknown URLs no longer render a blank white page.",
+    "MEDIUM: Do not show NewsletterPopup on /admin, /checkout, /cart (it blocks admin controls).",
+    "MEDIUM: Fix Nav spacing/centering so 'Shop by Room' does not touch the 'Adore' logo at >=1280px.",
+    "MEDIUM: Replace duplicated/irrelevant product images - each of the 12 products needs its own image that actually shows the fixture.",
+    "MEDIUM: Add a dark scrim/overlay to the hero so the eyebrow text and 'Bespoke commissions' CTA meet contrast requirements.",
+    "LOW: Show an inline error for invalid contact phone; fix Track placeholder (no hyphen); replace hello@adore.com in Privacy Policy; fix '1 pieces' pluralisation; slugify /rooms/:room.",
+    "BACKEND: Recompute order total server-side, add unique index on products.slug (return 409), add pagination to GET /api/products, wrap Admin.loadAll() in try/catch."
+  ],
+  "critical_code_review_comments": [
+    "Checkout.jsx line 26-31: payload spreads `...form` and `total` (cart subtotal) while the UI renders `total + (total > 50000 ? 0 : 1200)`. Single source of truth for order amount is missing.",
+    "server.py POST /api/orders: `total` comes straight from the request body and is persisted without verification against the item snapshot prices - a client can under/over-pay. Compute it from items_snapshot.",
+    "server.py POST /api/products: no slug uniqueness validation while GET /api/products/{slug} does find_one by slug - duplicate slugs make a product unreachable.",
+    "Admin.jsx loadAll(): three parallel API calls with no try/catch; a single 401/500 produces an unhandled promise rejection and leaves the panel silently empty (no loading/error state).",
+    "NewsletterPopup.jsx: fixed inset-0 z-[70] overlay mounted app-wide with no route exclusion - blocks admin/checkout interaction.",
+    "server.py: 100+ lines of SAMPLE_PRODUCTS seed data inside the route module; move to backend/seed_data.py to keep server.py focused."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py",
+    "/app/frontend/src/pages/Cart.jsx"
+  ],
+  "success_rate": {"backend": "100% (36/36 pytest cases)", "frontend": "~90% of flows pass; 2 HIGH functional/routing bugs and 6 design/content issues found"},
+  "seed_data_creation": "Created transient TEST_ users (TEST_ui*, TEST_wl*@example.com / Passw0rd!), 3 COD orders (e.g. ADRB643CA52), 3 newsletter signups and 5 inquiries (contact/bespoke/trade). All TEST_ products created during admin CRUD testing were deleted; product count verified back at 12. Test orders/inquiries were intentionally left in place so the admin Orders and Inquiries tabs have data.",
+  "should_call_test_agent_after_fix": true,
+  "should_main_agent_self_test": false,
+  "test_credentials": "Admin: admin@adore.com / Admin@Adore2026 (works, routes to /admin). /app/memory/test_credentials.md present and accurate.",
+  "context_for_next_testing_agent": "Backend regression suite lives at /app/backend/tests/backend_test.py - run with `cd /app/backend && python -m pytest tests/backend_test.py -v --junitxml=/app/test_reports/pytest/pytest_results.xml` (all 36 green as of this iteration). I added data-testid attributes to Cart.jsx (cart-qty-inc-<slug>, cart-qty-dec-<slug>, cart-qty-<slug>, cart-total). IMPORTANT for Playwright: the NewsletterPopup fires after 12s and blocks clicks - suppress it with `await page.add_init_script(\"localStorage.setItem('adore_popup_seen','1');\")` (plain statement, NOT an arrow function string, which is a silent no-op). Legal pages are at /legal/<privacy|terms|shipping|returns>, not /privacy. Razorpay is intentionally unconfigured - only COD was tested. Retest focus after fixes: checkout total parity across cart/checkout/order/track, the new 404 route, popup suppression on /admin & /checkout, nav spacing at 1920px, and product image uniqueness.",
+  "rca_of_the_issue": "Checkout total mismatch: Checkout.jsx computes the displayed grand total inline as `total + (total > 50000 ? 0 : 1200)` in the JSX (line 132) but builds the API payload with the raw cart subtotal (`total`, line 29). Because the backend also blindly persists the client-supplied `total` (server.py create_order), the Rs 1,200 shipping fee shown to the customer is never recorded on the order - reproduced by adding Halo Disc Wall Sconce (Rs 18,500), checking out with COD, seeing 'Total Rs 19,700' in the summary, then seeing 'Total Rs 18,500' on /track?order=ADRB643CA52. Blank-page 404: App.js declares only explicit child routes under the '/' Layout route with no path='*' fallback, so an unmatched URL matches no route element and React Router renders nothing at all (not even the Layout chrome)."
+}
