@@ -43,17 +43,17 @@ export default function Nav() {
                     Complimentary white-glove delivery on orders above ₹50,000 · Trade program open for architects
                 </div>
 
-                <div className="flex items-center justify-between h-20">
+                <div className="grid grid-cols-[auto_1fr_auto] lg:grid-cols-3 items-center h-20 gap-4">
                     <button
                         data-testid="nav-menu-toggle"
                         onClick={() => setOpen(!open)}
-                        className="lg:hidden p-2 -ml-2"
+                        className="lg:hidden p-2 -ml-2 justify-self-start"
                         aria-label="Menu"
                     >
                         {open ? <X size={22} /> : <Menu size={22} />}
                     </button>
 
-                    <nav className="hidden lg:flex items-center gap-8 flex-1">
+                    <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
                         {CATEGORIES.slice(0, 5).map((c) => (
                             <Link
                                 key={c.slug}
@@ -65,15 +65,15 @@ export default function Nav() {
                             </Link>
                         ))}
                         <Link to="/rooms" data-testid="nav-rooms" className="text-sm font-medium hover:text-amber2 underline-link">
-                            Shop by Room
+                            Rooms
                         </Link>
                     </nav>
 
-                    <Link to="/" data-testid="nav-logo" className="font-serif text-3xl md:text-4xl tracking-tight leading-none">
+                    <Link to="/" data-testid="nav-logo" className="font-serif text-3xl md:text-4xl tracking-tight leading-none justify-self-center">
                         Adore
                     </Link>
 
-                    <div className="flex items-center gap-1 md:gap-3 flex-1 justify-end">
+                    <div className="flex items-center gap-1 md:gap-3 justify-self-end">
                         <button
                             data-testid="nav-search-btn"
                             onClick={() => setSearchOpen(true)}

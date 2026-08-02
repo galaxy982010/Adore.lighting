@@ -7,14 +7,18 @@ export default function Contact() {
     const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
     const [sent, setSent] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [phoneErr, setPhoneErr] = useState("");
+
+    const validPhone = (v) => !v || /^[6-9]\d{9}$/.test(v.replace(/\D/g, "").slice(-10));
 
     const submit = async (e) => {
         e.preventDefault();
-        // Simple India phone validation
-        if (form.phone && !/^[6-9]\d{9}$/.test(form.phone.replace(/\D/g, "").slice(-10))) {
+        if (!validPhone(form.phone)) {
+            setPhoneErr("Please enter a valid 10-digit Indian mobile number (starting 6–9).");
             toast.error("Please enter a valid Indian phone number.");
             return;
         }
+        setPhoneErr("");
         setLoading(true);
         try {
             await api.post("/inquiry", { ...form, inquiry_type: "contact" });
@@ -101,7 +105,8 @@ export default function Contact() {
                             <div className="tracking-editorial mb-2">Send a message</div>
                             <input data-testid="contact-form-name" required minLength={2} placeholder="Full name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full border-b border-charcoal/30 bg-transparent py-3 outline-none focus:border-amber2" />
                             <input data-testid="contact-form-email" required type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full border-b border-charcoal/30 bg-transparent py-3 outline-none focus:border-amber2" />
-                            <input data-testid="contact-form-phone" placeholder="Phone (10 digits, optional)" inputMode="tel" pattern="[6-9][0-9]{9}" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full border-b border-charcoal/30 bg-transparent py-3 outline-none focus:border-amber2" />
+                            <input data-testid="contact-form-phone" placeholder="Phone (10 digits, optional)" inputMode="tel" value={form.phone} onChange={(e) => { setForm({ ...form, phone: e.target.value }); if (phoneErr) setPhoneErr(""); }} onBlur={() => { if (!validPhone(form.phone)) setPhoneErr("Please enter a valid 10-digit Indian mobile number (starting 6–9)."); }} className={`w-full border-b bg-transparent py-3 outline-none ${phoneErr ? "border-terracotta focus:border-terracotta" : "border-charcoal/30 focus:border-amber2"}`} />
+                            {phoneErr && <div data-testid="contact-phone-error" className="text-xs text-terracotta -mt-3">{phoneErr}</div>}
                             <textarea data-testid="contact-form-message" required minLength={10} placeholder="How can we help?" rows="5" value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className="w-full border-b border-charcoal/30 bg-transparent py-3 outline-none focus:border-amber2 resize-none" />
                             <button data-testid="contact-form-submit" disabled={loading} className="w-full bg-charcoal text-ivory py-4 tracking-editorial hover:bg-amber2 transition-colors disabled:opacity-60">{loading ? "Sending…" : "Send message"}</button>
                         </form>

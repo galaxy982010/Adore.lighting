@@ -2,11 +2,11 @@ import { Link } from "react-router-dom";
 import { ROOMS } from "@/lib/api";
 
 const IMAGES = {
-    Living: "https://images.unsplash.com/photo-1704040686413-2c607dbd2f06?w=1400&q=85",
-    Bedroom: "https://images.unsplash.com/photo-1648415198825-7c805bfa043e?w=1400&q=85",
-    Dining: "https://images.unsplash.com/photo-1586450428662-92fe683549b9?w=1400&q=85",
-    Outdoor: "https://images.unsplash.com/photo-1775660922989-f0c624413269?w=1400&q=85",
-    Staircase: "https://images.unsplash.com/photo-1706820229870-f9a8c6dac193?w=1400&q=85",
+    living: "https://images.unsplash.com/photo-1704040686413-2c607dbd2f06?w=1400&q=85",
+    bedroom: "https://images.unsplash.com/photo-1648415198825-7c805bfa043e?w=1400&q=85",
+    dining: "https://images.unsplash.com/photo-1586450428662-92fe683549b9?w=1400&q=85",
+    outdoor: "https://images.unsplash.com/photo-1775660922989-f0c624413269?w=1400&q=85",
+    staircase: "https://images.unsplash.com/photo-1706820229870-f9a8c6dac193?w=1400&q=85",
 };
 
 export default function Rooms() {

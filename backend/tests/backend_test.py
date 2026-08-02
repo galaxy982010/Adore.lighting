@@ -258,26 +258,37 @@ class TestWishlist:
 
 
 # ---------- Orders (COD) ----------
+def order_payload(items, subtotal, shipping=None, total=None, method="cod", email="TEST_buyer@example.com"):
+    shipping = (0 if subtotal > 50000 else 1200) if shipping is None else shipping
+    return {
+        "items": items,
+        "customer_name": "TEST Buyer", "email": email,
+        "phone": "9876543210", "address": "1 Test Lane", "city": "Mumbai",
+        "state": "Maharashtra", "pincode": "400001",
+        "subtotal": subtotal, "shipping": shipping,
+        "total": subtotal + shipping if total is None else total,
+        "payment_method": method,
+    }
+
+
 class TestOrders:
     order_number = None
 
     def test_create_cod_order_and_track(self, client):
         products = client.get(f"{API}/products").json()
         p = products[0]
-        payload = {
-            "items": [{"product_id": p["id"], "quantity": 2}],
-            "customer_name": "TEST Buyer", "email": "TEST_buyer@example.com",
-            "phone": "9876543210", "address": "1 Test Lane", "city": "Mumbai",
-            "state": "Maharashtra", "pincode": "400001",
-            "total": p["price"] * 2, "payment_method": "cod",
-        }
-        r = client.post(f"{API}/orders", json=payload)
+        subtotal = p["price"] * 2
+        r = client.post(f"{API}/orders", json=order_payload(
+            [{"product_id": p["id"], "quantity": 2}], subtotal))
         assert r.status_code == 200, r.text[:300]
         order = r.json()["order"]
         assert order["order_number"].startswith("ADR")
         assert order["status"] == "pending"
         assert order["payment_method"] == "cod"
-        assert order["total"] == p["price"] * 2
+        expected_shipping = 0 if subtotal > 50000 else 1200
+        assert order["subtotal"] == subtotal
+        assert order["shipping"] == expected_shipping
+        assert order["total"] == subtotal + expected_shipping
         assert len(order["items"]) == 1
         assert order["items"][0]["quantity"] == 2
         assert order["items"][0]["name"] == p["name"]
@@ -286,7 +297,32 @@ class TestOrders:
 
         t = client.get(f"{API}/orders/track/{order['order_number']}")
         assert t.status_code == 200
-        assert t.json()["order_number"] == order["order_number"]
+        tracked = t.json()
+        assert tracked["order_number"] == order["order_number"]
+        assert tracked["subtotal"] == subtotal
+        assert tracked["shipping"] == expected_shipping
+        assert tracked["total"] == subtotal + expected_shipping
+
+    def test_server_recomputes_total_ignoring_tampered_client_values(self, client):
+        """Client sends bogus subtotal/shipping/total - server must use product prices."""
+        p = client.get(f"{API}/products/halo-disc-wall-sconce").json()
+        assert p["price"] == 18500
+        r = client.post(f"{API}/orders", json=order_payload(
+            [{"product_id": p["id"], "quantity": 1}], subtotal=1, shipping=0, total=1))
+        assert r.status_code == 200, r.text[:300]
+        o = r.json()["order"]
+        assert o["subtotal"] == 18500
+        assert o["shipping"] == 1200
+        assert o["total"] == 19700
+
+    def test_free_shipping_above_50k(self, client):
+        p = client.get(f"{API}/products/solene-cascade-chandelier").json()
+        r = client.post(f"{API}/orders", json=order_payload(
+            [{"product_id": p["id"], "quantity": 1}], subtotal=p["price"]))
+        assert r.status_code == 200
+        o = r.json()["order"]
+        assert o["shipping"] == 0
+        assert o["total"] == p["price"]
 
     def test_track_case_insensitive(self, client):
         assert TestOrders.order_number, "prior test must run"
@@ -298,25 +334,15 @@ class TestOrders:
         assert r.status_code == 404
 
     def test_order_invalid_product(self, client):
-        payload = {
-            "items": [{"product_id": str(uuid.uuid4()), "quantity": 1}],
-            "customer_name": "T", "email": "t@example.com", "phone": "9876543210",
-            "address": "a", "city": "b", "state": "c", "pincode": "400001",
-            "total": 100, "payment_method": "cod",
-        }
-        r = client.post(f"{API}/orders", json=payload)
+        r = client.post(f"{API}/orders", json=order_payload(
+            [{"product_id": str(uuid.uuid4()), "quantity": 1}], subtotal=100))
         assert r.status_code == 400
 
     def test_razorpay_order_without_keys(self, client):
         """Razorpay not configured - documents actual behaviour."""
         p = client.get(f"{API}/products").json()[0]
-        payload = {
-            "items": [{"product_id": p["id"], "quantity": 1}],
-            "customer_name": "T", "email": "t@example.com", "phone": "9876543210",
-            "address": "a", "city": "b", "state": "c", "pincode": "400001",
-            "total": p["price"], "payment_method": "razorpay",
-        }
-        r = client.post(f"{API}/orders", json=payload)
+        r = client.post(f"{API}/orders", json=order_payload(
+            [{"product_id": p["id"], "quantity": 1}], subtotal=p["price"], method="razorpay"))
         assert r.status_code == 200
         assert r.json()["razorpay_key_id"] is None
 
@@ -339,14 +365,20 @@ class TestOrders:
                           json={"email": email, "name": "TEST", "password": "Passw0rd!"}).json()["token"]
         h = {"Authorization": f"Bearer {tok}"}
         p = client.get(f"{API}/products").json()[0]
-        client.post(f"{API}/orders", json={
-            "items": [{"product_id": p["id"], "quantity": 1}],
-            "customer_name": "T", "email": email, "phone": "9876543210",
-            "address": "a", "city": "b", "state": "c", "pincode": "400001",
-            "total": p["price"], "payment_method": "cod"}, headers=h)
+        client.post(f"{API}/orders", json=order_payload(
+            [{"product_id": p["id"], "quantity": 1}], subtotal=p["price"], email=email), headers=h)
         r = client.get(f"{API}/orders/mine", headers=h)
         assert r.status_code == 200, r.text[:300]
         assert len(r.json()) == 1
+
+
+# ---------- Room filter (regression: lowercase slugs from Rooms.jsx) ----------
+class TestRoomFilter:
+    @pytest.mark.parametrize("slug", ["living", "bedroom", "dining", "outdoor", "staircase"])
+    def test_room_filter_lowercase_slug_returns_products(self, client, slug):
+        r = client.get(f"{API}/products", params={"room": slug})
+        assert r.status_code == 200
+        assert len(r.json()) > 0, f"room={slug} returned 0 products (case-sensitive match against seeded '{slug.capitalize()}')"
 
 
 # ---------- Newsletter & Inquiry ----------

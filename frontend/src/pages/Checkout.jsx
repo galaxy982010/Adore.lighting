@@ -26,7 +26,9 @@ export default function Checkout() {
             const payload = {
                 items: items.map((i) => ({ product_id: i.id, quantity: i.quantity })),
                 ...form,
-                total,
+                subtotal: total,
+                shipping: total > 50000 ? 0 : 1200,
+                total: total + (total > 50000 ? 0 : 1200),
                 payment_method: method,
             };
             const r = await api.post("/orders", payload);
@@ -126,7 +128,7 @@ export default function Checkout() {
                     </div>
                     <div className="mt-6 pt-6 border-t border-charcoal/20 space-y-2 text-sm">
                         <div className="flex justify-between"><span>Subtotal</span><span>{formatINR(total)}</span></div>
-                        <div className="flex justify-between text-muted2"><span>Shipping</span><span>{total > 50000 ? "Free" : "₹1,200"}</span></div>
+                        <div className="flex justify-between text-muted2"><span>Shipping</span><span>{total > 50000 ? "Free" : formatINR(1200)}</span></div>
                     </div>
                     <div className="mt-4 pt-4 border-t border-charcoal/20 flex justify-between font-serif text-xl">
                         <span>Total</span><span>{formatINR(total + (total > 50000 ? 0 : 1200))}</span>

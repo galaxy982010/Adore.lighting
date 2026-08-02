@@ -52,10 +52,10 @@ export default function Cart() {
                     <div className="tracking-editorial mb-6">Order Summary</div>
                     <div className="space-y-3 text-sm">
                         <div className="flex justify-between"><span>Subtotal</span><span>{formatINR(total)}</span></div>
-                        <div className="flex justify-between text-muted2"><span>Shipping</span><span>{total > 50000 ? "Complimentary" : "Calculated at checkout"}</span></div>
+                        <div className="flex justify-between text-muted2"><span>Shipping</span><span>{total > 50000 ? "Complimentary" : formatINR(1200)}</span></div>
                     </div>
                     <div className="mt-6 pt-6 border-t border-charcoal/20 flex justify-between font-serif text-xl">
-                        <span>Total</span><span data-testid="cart-total">{formatINR(total)}</span>
+                        <span>Total</span><span data-testid="cart-total">{formatINR(total + (total > 50000 ? 0 : 1200))}</span>
                     </div>
                     <Link to="/checkout" data-testid="checkout-cta" className="mt-8 w-full bg-charcoal text-ivory py-4 tracking-editorial hover:bg-amber2 transition-colors flex items-center justify-center gap-2">
                         Checkout <ArrowRight size={14} />

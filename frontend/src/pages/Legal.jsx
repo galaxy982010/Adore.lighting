@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 const CONTENT = {
     privacy: {
         title: "Privacy Policy",
-        body: `We collect only what we need to serve you — name, address, contact and order history. We never sell your data. Cookies are used solely to keep your session, cart and preferences. Contact hello@adore.com for data deletion requests.`,
+        body: `We collect only what we need to serve you — name, address, contact and order history. We never sell your data. Cookies are used solely to keep your session, cart and preferences. Contact salesadorelighting@gmail.com for data deletion requests.`,
     },
     terms: {
         title: "Terms of Service",

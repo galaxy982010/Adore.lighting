@@ -33,7 +33,7 @@ export default function Home() {
                     alt="Warm luxury interior with sculptural lighting"
                     className="absolute inset-0 w-full h-full object-cover opacity-95"
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-charcoal/40 via-transparent to-charcoal/60" />
+                <div className="absolute inset-0 bg-gradient-to-b from-charcoal/60 via-charcoal/25 to-charcoal/80" />
                 <div className="relative h-full max-w-[1400px] mx-auto px-6 md:px-10 flex flex-col justify-end pb-24 text-ivory">
                     <div className="max-w-2xl rise-in">
                         <div className="tracking-editorial text-ivory/80 mb-6">Spring Edition · 2026</div>

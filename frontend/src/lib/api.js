@@ -44,11 +44,11 @@ export const CATEGORIES = [
 ];
 
 export const ROOMS = [
-    { slug: "Living", name: "Living Room" },
-    { slug: "Bedroom", name: "Bedroom" },
-    { slug: "Dining", name: "Dining" },
-    { slug: "Outdoor", name: "Outdoor" },
-    { slug: "Staircase", name: "Duplex & Staircase" },
+    { slug: "living", label: "Living", name: "Living Room" },
+    { slug: "bedroom", label: "Bedroom", name: "Bedroom" },
+    { slug: "dining", label: "Dining", name: "Dining" },
+    { slug: "outdoor", label: "Outdoor", name: "Outdoor" },
+    { slug: "staircase", label: "Staircase", name: "Duplex & Staircase" },
 ];
 
 export const formatINR = (n) =>

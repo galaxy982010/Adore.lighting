@@ -20,6 +20,7 @@ import Legal from "@/pages/Legal";
 import Auth from "@/pages/Auth";
 import Wishlist from "@/pages/Wishlist";
 import Admin from "@/pages/Admin";
+import NotFound from "@/pages/NotFound";
 
 function App() {
     return (
@@ -46,6 +47,7 @@ function App() {
                             <Route path="auth" element={<Auth />} />
                             <Route path="wishlist" element={<Wishlist />} />
                             <Route path="admin" element={<Admin />} />
+                            <Route path="*" element={<NotFound />} />
                         </Route>
                     </Routes>
                 </BrowserRouter>

@@ -79,7 +79,7 @@ export default function Category() {
 
                 <div>
                     <div className="flex items-center justify-between mb-8">
-                        <div className="text-sm text-muted2">{loading ? "Loading" : `${products.length} pieces`}</div>
+                        <div className="text-sm text-muted2">{loading ? "Loading" : `${products.length} piece${products.length === 1 ? "" : "s"}`}</div>
                         <select data-testid="sort-select" value={sort} onChange={(e) => setSort(e.target.value)} className="bg-transparent border-b border-charcoal/30 text-sm py-1 outline-none">
                             <option value="featured">Featured</option>
                             <option value="new">Newest</option>

@@ -1,18 +1,28 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { X, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+
+const HIDDEN_ROUTES = ["/admin", "/checkout", "/cart", "/auth"];
 
 export default function NewsletterPopup() {
     const [open, setOpen] = useState(false);
     const [email, setEmail] = useState("");
     const [done, setDone] = useState(false);
+    const { pathname } = useLocation();
 
     useEffect(() => {
         if (localStorage.getItem("adore_popup_seen")) return;
+        if (HIDDEN_ROUTES.some((r) => pathname.startsWith(r))) return;
         const t = setTimeout(() => setOpen(true), 12000);
         return () => clearTimeout(t);
-    }, []);
+    }, [pathname]);
+
+    // Also hide if user navigates into hidden route while open
+    useEffect(() => {
+        if (HIDDEN_ROUTES.some((r) => pathname.startsWith(r))) setOpen(false);
+    }, [pathname]);
 
     const close = () => {
         setOpen(false);

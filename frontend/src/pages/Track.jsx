@@ -38,7 +38,7 @@ export default function Track() {
             <h1 className="font-serif text-5xl mb-10">Track your order</h1>
 
             <form onSubmit={lookup} className="flex gap-3 border-b border-charcoal pb-3 mb-12">
-                <input data-testid="track-order-input" value={num} onChange={(e) => setNum(e.target.value)} placeholder="ADR-XXXXXXXX" className="flex-1 bg-transparent outline-none py-2 font-serif text-2xl" />
+                <input data-testid="track-order-input" value={num} onChange={(e) => setNum(e.target.value)} placeholder="e.g. ADRB643CA52" className="flex-1 bg-transparent outline-none py-2 font-serif text-2xl" />
                 <button data-testid="track-order-submit" className="tracking-editorial hover:text-amber2">{loading ? "Searching…" : "Track"}</button>
             </form>
 

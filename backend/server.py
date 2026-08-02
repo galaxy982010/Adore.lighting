@@ -131,7 +131,9 @@ class OrderCreate(BaseModel):
     city: str
     state: str
     pincode: str
-    total: int  # INR rupees
+    subtotal: int  # INR rupees (client-provided, server recomputes)
+    shipping: int = 0
+    total: int  # INR rupees (subtotal + shipping)
     payment_method: str = "razorpay"  # razorpay | cod
 
 
@@ -147,6 +149,8 @@ class Order(BaseModel):
     city: str
     state: str
     pincode: str
+    subtotal: int = 0
+    shipping: int = 0
     total: int
     status: str = "pending"  # pending | paid | shipped | delivered | cancelled
     payment_method: str = "razorpay"
@@ -374,17 +378,24 @@ async def create_order(data: OrderCreate, authorization: Optional[str] = Header(
         except pyjwt.PyJWTError:
             pass
 
-    # Build items snapshot
+    # Build items snapshot & authoritative totals
     items_snapshot = []
+    computed_subtotal = 0
     for it in data.items:
         p = await db.products.find_one({"id": it.product_id}, {"_id": 0})
         if not p:
             raise HTTPException(400, f"Product {it.product_id} not found")
+        line_total = p["price"] * it.quantity
+        computed_subtotal += line_total
         items_snapshot.append({
             "product_id": p["id"], "name": p["name"], "slug": p["slug"],
             "price": p["price"], "quantity": it.quantity,
             "image": (p.get("images") or [None])[0],
         })
+
+    # Server-computed shipping: free above 50k, else Rs 1,200
+    computed_shipping = 0 if computed_subtotal > 50000 else 1200
+    computed_total = computed_subtotal + computed_shipping
 
     order = Order(
         user_id=user_id,
@@ -396,7 +407,9 @@ async def create_order(data: OrderCreate, authorization: Optional[str] = Header(
         city=data.city,
         state=data.state,
         pincode=data.pincode,
-        total=data.total,
+        subtotal=computed_subtotal,
+        shipping=computed_shipping,
+        total=computed_total,
         payment_method=data.payment_method,
     )
 
@@ -404,7 +417,7 @@ async def create_order(data: OrderCreate, authorization: Optional[str] = Header(
     if data.payment_method == "razorpay" and rzp_client:
         try:
             rzp_order = rzp_client.order.create({
-                "amount": data.total * 100,  # paise
+                "amount": computed_total * 100,  # paise
                 "currency": "INR",
                 "receipt": order.order_number,
                 "payment_capture": 1,
