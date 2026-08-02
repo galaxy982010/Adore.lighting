@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useLocation, Link } from "react-router-dom";
-import { api, CATEGORIES } from "@/lib/api";
+import { api, CATEGORIES, ROOMS } from "@/lib/api";
 import ProductCard from "@/components/ProductCard";
 
 export default function Category() {
@@ -12,8 +12,9 @@ export default function Category() {
     const [filters, setFilters] = useState({ min_price: "", max_price: "", finish: "", style: "", bulb_type: "" });
     const [sort, setSort] = useState("featured");
 
+    const roomEntry = isRoom ? ROOMS.find((r) => r.slug === room?.toLowerCase()) : null;
     const meta = isRoom
-        ? { name: room, tag: "Shop by Room", blurb: `Considered lighting for the ${room?.toLowerCase()} — layered and warm.` }
+        ? { name: roomEntry?.name || room, tag: "Shop by Room", blurb: `Considered lighting for the ${(roomEntry?.name || room).toLowerCase()} — layered and warm.` }
         : CATEGORIES.find((c) => c.slug === category) || { name: category, tag: "Collection" };
 
     useEffect(() => {

@@ -266,7 +266,7 @@ async def list_products(category: Optional[str] = None, room: Optional[str] = No
                         style: Optional[str] = None, bulb_type: Optional[str] = None):
     q = {}
     if category: q["category"] = category
-    if room: q["room"] = room
+    if room: q["room"] = {"$regex": f"^{room}$", "$options": "i"}
     if featured is not None: q["featured"] = featured
     if new_arrival is not None: q["new_arrival"] = new_arrival
     if finish: q["finish"] = finish
