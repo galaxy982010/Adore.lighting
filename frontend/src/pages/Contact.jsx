@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "sonner";
-import { Instagram, Facebook, Youtube, Linkedin, Phone, Mail, MapPin, MessageCircle } from "lucide-react";
+import { Instagram, Facebook, Youtube, Linkedin, Phone, Mail, MessageCircle } from "lucide-react";
 import { api, BRAND } from "@/lib/api";
 
 export default function Contact() {
@@ -60,9 +60,9 @@ export default function Contact() {
                             <div className="font-serif text-xl">Instant reply</div>
                         </a>
                         <div className="block p-6 bg-ivory-2">
-                            <MapPin size={18} className="text-amber2 mb-3" />
-                            <div className="tracking-editorial text-muted2 mb-2">Studio hours</div>
-                            <div className="text-sm">Mon–Sat · 10:00 – 20:00 IST<br />Sun by appointment</div>
+                            <Phone size={18} className="text-amber2 mb-3" />
+                            <div className="tracking-editorial text-muted2 mb-2">Support hours</div>
+                            <div className="text-sm">Mon–Sat<br />10:00 AM – 7:00 PM (IST)</div>
                         </div>
                     </div>
 

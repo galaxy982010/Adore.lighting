@@ -17,7 +17,7 @@ export default function Auth() {
             if (mode === "login") {
                 const user = await login(form.email, form.password);
                 toast.success(`Welcome back, ${user.name}`);
-                navigate(user.role === "admin" ? "/admin" : "/");
+                navigate(user.role === "admin" ? "/adore-admin" : "/");
             } else {
                 await register(form.name, form.email, form.password);
                 toast.success("Welcome to Adore");

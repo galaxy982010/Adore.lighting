@@ -1,10 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import { ShoppingBag, Search, User, Menu, X, Heart, Package } from "lucide-react";
+import { ShoppingBag, Search, User, Menu, X, Heart } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
-import { api, CATEGORIES, formatINR } from "@/lib/api";
+import { api, formatINR } from "@/lib/api";
 
+// Minimal luxury header:
+//   Announcement bar · logo-centered nav · essential icons (search / wishlist / account / cart).
+// No category nav links, no store/warranty/EMI mentions.
 export default function Nav() {
     const { count } = useCart();
     const { user, logout } = useAuth();
@@ -36,41 +39,27 @@ export default function Nav() {
     };
 
     return (
-        <header className="sticky top-0 z-50 backdrop-blur-xl bg-ivory/85 border-b border-[#E5E3DC]">
+        <header className="sticky top-0 z-50 backdrop-blur-xl bg-ivory/90 border-b border-[#E5E3DC]">
             <div className="max-w-[1400px] mx-auto px-6 md:px-10">
                 {/* announcement */}
                 <div className="hidden md:flex justify-center text-[11px] tracking-editorial text-muted2 py-2 border-b border-[#E5E3DC]/70">
-                    Complimentary white-glove delivery on orders above ₹50,000 · Trade program open for architects
+                    Complimentary Shipping Across India
                 </div>
 
-                <div className="grid grid-cols-[auto_1fr_auto] lg:grid-cols-3 items-center h-20 gap-4">
+                <div className="grid grid-cols-[auto_1fr_auto] items-center h-20 gap-4">
                     <button
                         data-testid="nav-menu-toggle"
                         onClick={() => setOpen(!open)}
-                        className="lg:hidden p-2 -ml-2 justify-self-start"
+                        className="md:hidden p-2 -ml-2 justify-self-start"
                         aria-label="Menu"
                     >
                         {open ? <X size={22} /> : <Menu size={22} />}
                     </button>
+                    <div className="hidden md:block" />
 
-                    <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
-                        {CATEGORIES.slice(0, 5).map((c) => (
-                            <Link
-                                key={c.slug}
-                                to={`/shop/${c.slug}`}
-                                data-testid={`nav-cat-${c.slug}`}
-                                className="text-sm font-medium hover:text-amber2 underline-link"
-                            >
-                                {c.name}
-                            </Link>
-                        ))}
-                        <Link to="/rooms" data-testid="nav-rooms" className="text-sm font-medium hover:text-amber2 underline-link">
-                            Rooms
-                        </Link>
-                    </nav>
-
-                    <Link to="/" data-testid="nav-logo" className="font-serif text-3xl md:text-4xl tracking-tight leading-none justify-self-center">
-                        Adore
+                    <Link to="/" data-testid="nav-logo" className="justify-self-center flex items-baseline gap-2 leading-none">
+                        <span className="font-serif text-3xl md:text-4xl tracking-tight">Adore</span>
+                        <span className="hidden sm:inline text-[10px] tracking-editorial text-muted2 pb-1">Lighting</span>
                     </Link>
 
                     <div className="flex items-center gap-1 md:gap-3 justify-self-end">
@@ -92,9 +81,6 @@ export default function Nav() {
                                 </button>
                                 <div className="absolute right-0 top-full mt-1 w-52 bg-ivory border border-[#E5E3DC] py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity">
                                     <div className="px-4 py-2 text-xs text-muted2 border-b border-[#E5E3DC]">{user.email}</div>
-                                    {user.role === "admin" && (
-                                        <button onClick={() => go("/admin")} data-testid="nav-admin-link" className="block w-full text-left px-4 py-2 text-sm hover:bg-ivory-2">Admin</button>
-                                    )}
                                     <button onClick={() => go("/track")} className="block w-full text-left px-4 py-2 text-sm hover:bg-ivory-2">Track Order</button>
                                     <button onClick={logout} data-testid="nav-logout" className="block w-full text-left px-4 py-2 text-sm hover:bg-ivory-2">Sign out</button>
                                 </div>
@@ -118,19 +104,13 @@ export default function Nav() {
 
             {/* Mobile Menu */}
             {open && (
-                <div className="lg:hidden border-t border-[#E5E3DC] bg-ivory">
+                <div className="md:hidden border-t border-[#E5E3DC] bg-ivory">
                     <nav className="px-6 py-4 flex flex-col gap-2">
-                        {CATEGORIES.map((c) => (
-                            <Link key={c.slug} to={`/shop/${c.slug}`} onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">
-                                {c.name}
-                            </Link>
-                        ))}
-                        <Link to="/rooms" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Shop by Room</Link>
+                        <Link to="/" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Home</Link>
                         <Link to="/about" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Our Story</Link>
-                        <Link to="/stores" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Stores</Link>
                         <Link to="/bespoke" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Bespoke</Link>
-                        <Link to="/trade" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Trade</Link>
-                        <Link to="/track" onClick={() => setOpen(false)} className="py-3 text-sm"><Package size={14} className="inline mr-2" />Track Order</Link>
+                        <Link to="/track" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Track Order</Link>
+                        <Link to="/contact" onClick={() => setOpen(false)} className="py-3 text-sm">Contact</Link>
                     </nav>
                 </div>
             )}

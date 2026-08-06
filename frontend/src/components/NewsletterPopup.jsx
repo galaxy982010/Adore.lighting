@@ -1,73 +1,98 @@
-import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
-import { X, Sparkles } from "lucide-react";
-import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { useEffect, useState, useRef } from "react";
+import { useLocation, Link } from "react-router-dom";
+import { X, ChevronRight } from "lucide-react";
+import { api, formatINR } from "@/lib/api";
 
-const HIDDEN_ROUTES = ["/admin", "/checkout", "/cart", "/auth"];
+const HIDDEN_ROUTES = ["/adore-admin", "/checkout", "/cart", "/auth"];
+const INTERVAL_MS = 60000; // 1 minute
+const VISIBLE_MS = 9000;   // stays 9s on screen
 
-export default function NewsletterPopup() {
-    const [open, setOpen] = useState(false);
-    const [email, setEmail] = useState("");
-    const [done, setDone] = useState(false);
+// Premium bottom-right sliding product teaser popup.
+// Rotates a featured product every minute across the site
+// (except admin/checkout/cart/auth routes).
+export default function ProductTeaserPopup() {
+    const [pool, setPool] = useState([]);
+    const [current, setCurrent] = useState(null);
+    const [visible, setVisible] = useState(false);
     const { pathname } = useLocation();
+    const idxRef = useRef(0);
+    const cycleRef = useRef(null);
+    const hideRef = useRef(null);
+
+    const isHidden = HIDDEN_ROUTES.some((r) => pathname.startsWith(r));
 
     useEffect(() => {
-        if (localStorage.getItem("adore_popup_seen")) return;
-        if (HIDDEN_ROUTES.some((r) => pathname.startsWith(r))) return;
-        const t = setTimeout(() => setOpen(true), 12000);
-        return () => clearTimeout(t);
-    }, [pathname]);
+        api.get("/products", { params: { featured: true } }).then((r) => {
+            // shuffle
+            const list = [...r.data].sort(() => Math.random() - 0.5);
+            setPool(list);
+        });
+    }, []);
 
-    // Also hide if user navigates into hidden route while open
     useEffect(() => {
-        if (HIDDEN_ROUTES.some((r) => pathname.startsWith(r))) setOpen(false);
-    }, [pathname]);
+        if (isHidden || pool.length === 0) return;
 
-    const close = () => {
-        setOpen(false);
-        localStorage.setItem("adore_popup_seen", "1");
-    };
+        const showNext = () => {
+            const p = pool[idxRef.current % pool.length];
+            idxRef.current += 1;
+            setCurrent(p);
+            setVisible(true);
+            clearTimeout(hideRef.current);
+            hideRef.current = setTimeout(() => setVisible(false), VISIBLE_MS);
+        };
 
-    const submit = async (e) => {
-        e.preventDefault();
-        try {
-            await api.post("/newsletter", { email });
-            setDone(true);
-            localStorage.setItem("adore_popup_seen", "1");
-            setTimeout(close, 3000);
-        } catch {
-            toast.error("Please try again.");
-        }
-    };
+        // Show first after 25s, then every 60s
+        const first = setTimeout(showNext, 25000);
+        cycleRef.current = setInterval(showNext, INTERVAL_MS);
 
-    if (!open) return null;
+        return () => {
+            clearTimeout(first);
+            clearInterval(cycleRef.current);
+            clearTimeout(hideRef.current);
+        };
+    }, [pool, isHidden]);
+
+    useEffect(() => {
+        if (isHidden) setVisible(false);
+    }, [isHidden]);
+
+    if (isHidden || !current) return null;
 
     return (
-        <div className="fixed inset-0 z-[70] bg-charcoal/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={close}>
-            <div className="relative bg-ivory max-w-lg w-full grid md:grid-cols-2 overflow-hidden" onClick={(e) => e.stopPropagation()}>
-                <button data-testid="popup-close" onClick={close} className="absolute top-3 right-3 z-10 p-1 hover:text-amber2"><X size={18} /></button>
-                <div className="aspect-square hidden md:block bg-charcoal">
-                    <img src="https://images.unsplash.com/photo-1648415198825-7c805bfa043e?w=700&q=85" alt="" className="w-full h-full object-cover" />
+        <div
+            data-testid="product-popup"
+            aria-live="polite"
+            className={`fixed bottom-24 left-6 z-40 w-[calc(100%-3rem)] sm:w-[360px] transition-all duration-500 ease-out ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6 pointer-events-none"}`}
+        >
+            <div className="relative bg-ivory border border-[#E5E3DC] shadow-[0_20px_60px_-20px_rgba(44,44,43,0.35)] overflow-hidden">
+                <button
+                    data-testid="product-popup-close"
+                    onClick={() => setVisible(false)}
+                    aria-label="Close"
+                    className="absolute top-2 right-2 z-10 p-1 text-muted2 hover:text-amber2"
+                >
+                    <X size={16} />
+                </button>
+                <div className="flex gap-4">
+                    <div className="w-28 h-32 bg-ivory-2 shrink-0 overflow-hidden">
+                        <img src={current.images?.[0]} alt={current.name} loading="lazy" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="flex-1 py-4 pr-8 min-w-0">
+                        <div className="tracking-editorial text-amber2 mb-1 text-[9px]">Just Viewed</div>
+                        <div className="font-serif text-lg leading-tight truncate">{current.name}</div>
+                        <div className="text-xs text-muted2 mt-1 capitalize">{current.category.replace(/-/g, " ")}</div>
+                        <div className="mt-2 text-sm font-medium">{formatINR(current.price)}</div>
+                    </div>
                 </div>
-                <div className="p-8">
-                    <Sparkles size={20} className="text-amber2 mb-4" />
-                    <div className="tracking-editorial text-muted2 mb-3">First to know</div>
-                    <div className="font-serif text-3xl leading-tight mb-4">Enjoy 10% off your first order</div>
-                    <p className="text-sm text-charcoal/70 mb-5">Join the atelier newsletter and we'll send you the code, plus early access to new arrivals and studio dispatches.</p>
-                    {done ? (
-                        <div className="p-4 bg-ivory-2 text-center">
-                            <div className="font-serif text-xl mb-1">Welcome.</div>
-                            <div className="text-xs text-muted2">Your code: <span className="text-amber2 font-medium tracking-editorial">ADORE10</span></div>
-                        </div>
-                    ) : (
-                        <form onSubmit={submit} className="space-y-3">
-                            <input data-testid="popup-email" required type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Your email" className="w-full border-b border-charcoal/30 bg-transparent py-2 outline-none focus:border-amber2 text-sm" />
-                            <button data-testid="popup-submit" className="w-full bg-charcoal text-ivory py-3 tracking-editorial hover:bg-amber2 transition-colors">Send my code</button>
-                        </form>
-                    )}
-                    <div className="text-[10px] text-muted2 mt-4">No spam. Unsubscribe any time.</div>
-                </div>
+                <Link
+                    to={`/product/${current.slug}`}
+                    data-testid="product-popup-cta"
+                    onClick={() => setVisible(false)}
+                    className="flex items-center justify-between px-4 py-3 bg-charcoal text-ivory tracking-editorial text-xs hover:bg-amber2 transition-colors"
+                >
+                    <span>View this piece</span>
+                    <ChevronRight size={14} />
+                </Link>
             </div>
         </div>
     );

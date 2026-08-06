@@ -14,8 +14,8 @@ if not base_url:
 BASE_URL = base_url.rstrip("/")
 API = f"{BASE_URL}/api"
 
-ADMIN_EMAIL = "admin@adore.com"
-ADMIN_PASSWORD = "Admin@Adore2026"
+ADMIN_EMAIL = "salesadorelighting@gmail.com"
+ADMIN_PASSWORD = "Adore@Studio2026"
 
 
 @pytest.fixture(scope="session")
@@ -65,7 +65,7 @@ class TestProducts:
             assert "_id" not in p
             assert isinstance(p["price"], int)
         cats = {p["category"] for p in products}
-        for c in ["chandeliers", "pendants", "wall", "table", "floor", "ceiling", "outdoor", "architectural"]:
+        for c in ["chandeliers", "pendants", "wall", "table", "floor", "ceiling", "outdoor"]:
             assert c in cats, f"category {c} missing from seed"
 
     def test_get_product_by_slug(self, client):
@@ -259,7 +259,7 @@ class TestWishlist:
 
 # ---------- Orders (COD) ----------
 def order_payload(items, subtotal, shipping=None, total=None, method="cod", email="TEST_buyer@example.com"):
-    shipping = (0 if subtotal > 50000 else 1200) if shipping is None else shipping
+    shipping = 0 if shipping is None else shipping
     return {
         "items": items,
         "customer_name": "TEST Buyer", "email": email,
@@ -285,7 +285,7 @@ class TestOrders:
         assert order["order_number"].startswith("ADR")
         assert order["status"] == "pending"
         assert order["payment_method"] == "cod"
-        expected_shipping = 0 if subtotal > 50000 else 1200
+        expected_shipping = 0  # shipping is now always complimentary
         assert order["subtotal"] == subtotal
         assert order["shipping"] == expected_shipping
         assert order["total"] == subtotal + expected_shipping
@@ -295,7 +295,13 @@ class TestOrders:
         assert "_id" not in order
         TestOrders.order_number = order["order_number"]
 
-        t = client.get(f"{API}/orders/track/{order['order_number']}")
+        # without email -> limited payload
+        t0 = client.get(f"{API}/orders/track/{order['order_number']}")
+        assert t0.status_code == 200
+        assert t0.json().get("requires_email") is True
+
+        t = client.get(f"{API}/orders/track/{order['order_number']}",
+                       params={"email": "TEST_buyer@example.com"})
         assert t.status_code == 200
         tracked = t.json()
         assert tracked["order_number"] == order["order_number"]
@@ -312,10 +318,10 @@ class TestOrders:
         assert r.status_code == 200, r.text[:300]
         o = r.json()["order"]
         assert o["subtotal"] == 18500
-        assert o["shipping"] == 1200
-        assert o["total"] == 19700
+        assert o["shipping"] == 0
+        assert o["total"] == 18500
 
-    def test_free_shipping_above_50k(self, client):
+    def test_shipping_always_zero_low_value_order(self, client):
         p = client.get(f"{API}/products/solene-cascade-chandelier").json()
         r = client.post(f"{API}/orders", json=order_payload(
             [{"product_id": p["id"], "quantity": 1}], subtotal=p["price"]))
@@ -411,3 +417,120 @@ class TestNewsletterInquiry:
 
     def test_inquiries_admin_only(self, client):
         assert client.get(f"{API}/inquiries").status_code == 401
+
+
+# ---------- New scope: categories fan-chandeliers / bulbs ----------
+class TestNewCategories:
+    @pytest.mark.parametrize("cat", ["fan-chandeliers", "bulbs"])
+    def test_new_category_filter_is_valid(self, client, cat):
+        r = client.get(f"{API}/products", params={"category": cat})
+        assert r.status_code == 200, r.text[:300]
+        data = r.json()
+        assert isinstance(data, list)  # empty list acceptable
+        assert all(p["category"] == cat for p in data)
+
+    def test_bulbs_subcategory_param_no_error(self, client):
+        r = client.get(f"{API}/products", params={"category": "bulbs", "sub": "e27-4w-filament"})
+        assert r.status_code == 200, r.text[:300]
+        assert isinstance(r.json(), list)
+
+    def test_product_count_is_25(self, client):
+        r = client.get(f"{API}/products")
+        assert r.status_code == 200
+        assert len(r.json()) == 25, f"expected 25 seeded products, got {len(r.json())}"
+
+
+# ---------- New scope: coupons ----------
+class TestCoupons:
+    def test_seeded_adore10_listed_for_admin(self, client, admin_headers):
+        r = client.get(f"{API}/coupons", headers=admin_headers)
+        assert r.status_code == 200, r.text[:300]
+        coupons = r.json()
+        assert all("_id" not in c for c in coupons)
+        codes = {c["code"] for c in coupons}
+        assert "ADORE10" in codes
+        adore10 = next(c for c in coupons if c["code"] == "ADORE10")
+        assert adore10["percent_off"] == 10
+        assert adore10["min_order"] == 10000
+        assert adore10["active"] is True
+
+    def test_coupons_list_admin_only(self, client):
+        assert client.get(f"{API}/coupons").status_code == 401
+
+    def test_apply_adore10_valid(self, client):
+        r = client.post(f"{API}/coupons/apply", json={"code": "ADORE10", "subtotal": 15000})
+        assert r.status_code == 200, r.text[:300]
+        d = r.json()
+        assert d["code"] == "ADORE10"
+        assert d["discount"] == 1500
+
+    def test_apply_lowercase_code(self, client):
+        r = client.post(f"{API}/coupons/apply", json={"code": "adore10", "subtotal": 18500})
+        assert r.status_code == 200
+        assert r.json()["discount"] == 1850
+
+    def test_apply_below_min_order(self, client):
+        r = client.post(f"{API}/coupons/apply", json={"code": "ADORE10", "subtotal": 5000})
+        assert r.status_code == 400, r.text[:300]
+
+    def test_apply_invalid_code(self, client):
+        r = client.post(f"{API}/coupons/apply", json={"code": "NOPE_XYZ", "subtotal": 50000})
+        assert r.status_code == 404
+
+    def test_order_with_coupon_applies_discount(self, client):
+        p = client.get(f"{API}/products/halo-disc-wall-sconce").json()
+        assert p["price"] == 18500
+        payload = order_payload([{"product_id": p["id"], "quantity": 1}], 18500)
+        payload["coupon_code"] = "ADORE10"
+        r = client.post(f"{API}/orders", json=payload)
+        assert r.status_code == 200, r.text[:300]
+        o = r.json()["order"]
+        assert o["subtotal"] == 18500
+        assert o["shipping"] == 0
+        assert o["discount"] == 1850
+        assert o["coupon_code"] == "ADORE10"
+        assert o["total"] == 16650
+
+    def test_order_with_coupon_below_min_gets_no_discount(self, client):
+        products = client.get(f"{API}/products").json()
+        cheap = min(products, key=lambda x: x["price"])
+        if cheap["price"] >= 10000:
+            pytest.skip("no product under min_order 10000")
+        payload = order_payload([{"product_id": cheap["id"], "quantity": 1}], cheap["price"])
+        payload["coupon_code"] = "ADORE10"
+        r = client.post(f"{API}/orders", json=payload)
+        assert r.status_code == 200, r.text[:300]
+        o = r.json()["order"]
+        assert o["discount"] == 0
+        assert o["total"] == cheap["price"]
+
+    def test_admin_coupon_crud(self, client, admin_headers):
+        code = f"TEST{uuid.uuid4().hex[:6].upper()}"
+        r = client.post(f"{API}/coupons", headers=admin_headers,
+                        json={"code": code, "percent_off": 20, "min_order": 1000, "active": True})
+        assert r.status_code == 200, r.text[:300]
+        lst = client.get(f"{API}/coupons", headers=admin_headers).json()
+        assert code in {c["code"] for c in lst}
+        ap = client.post(f"{API}/coupons/apply", json={"code": code, "subtotal": 2000})
+        assert ap.status_code == 200
+        assert ap.json()["discount"] == 400
+        dup = client.post(f"{API}/coupons", headers=admin_headers,
+                          json={"code": code, "percent_off": 20, "min_order": 1000, "active": True})
+        assert dup.status_code == 409
+        dele = client.delete(f"{API}/coupons/{code}", headers=admin_headers)
+        assert dele.status_code == 200
+        lst2 = client.get(f"{API}/coupons", headers=admin_headers).json()
+        assert code not in {c["code"] for c in lst2}
+        assert client.delete(f"{API}/coupons/{code}", headers=admin_headers).status_code == 404
+
+
+# ---------- New scope: admin seeding ----------
+class TestAdminSeed:
+    def test_legacy_admin_removed(self, client):
+        r = client.post(f"{API}/auth/login", json={"email": "admin@adore.com", "password": "Admin@Adore2026"})
+        assert r.status_code == 401, "legacy admin should be deleted on startup"
+
+    def test_seeded_admin_login(self, client):
+        r = client.post(f"{API}/auth/login", json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD})
+        assert r.status_code == 200, r.text[:300]
+        assert r.json()["user"]["role"] == "admin"

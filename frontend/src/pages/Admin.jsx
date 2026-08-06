@@ -20,6 +20,8 @@ export default function Admin() {
     const [tab, setTab] = useState("products");
     const [orders, setOrders] = useState([]);
     const [inquiries, setInquiries] = useState([]);
+    const [coupons, setCoupons] = useState([]);
+    const [newCoupon, setNewCoupon] = useState({ code: "", percent_off: 10, flat_off: 0, min_order: 0, active: true });
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -33,14 +35,34 @@ export default function Admin() {
     }, [user, loading]);
 
     const loadAll = async () => {
-        const [pr, or, iq] = await Promise.all([
+        const [pr, or, iq, cp] = await Promise.all([
             api.get("/products"),
             api.get("/orders"),
             api.get("/inquiries"),
+            api.get("/coupons"),
         ]);
         setProducts(pr.data);
         setOrders(or.data);
         setInquiries(iq.data);
+        setCoupons(cp.data);
+    };
+
+    const createCoupon = async (e) => {
+        e.preventDefault();
+        try {
+            await api.post("/coupons", { ...newCoupon, code: newCoupon.code.trim().toUpperCase() });
+            toast.success("Coupon created");
+            setNewCoupon({ code: "", percent_off: 10, flat_off: 0, min_order: 0, active: true });
+            loadAll();
+        } catch (err) {
+            toast.error(err?.response?.data?.detail || "Failed");
+        }
+    };
+
+    const deleteCoupon = async (code) => {
+        if (!window.confirm(`Delete coupon ${code}?`)) return;
+        await api.delete(`/coupons/${code}`);
+        loadAll();
     };
 
     const upd = (k) => (e) => {
@@ -216,6 +238,53 @@ export default function Admin() {
                         </div>
                     ))}
                     {inquiries.length === 0 && <div className="py-8 text-center text-muted2">No inquiries yet.</div>}
+                </div>
+            )}
+
+            {tab === "coupons" && (
+                <div className="grid lg:grid-cols-[1fr_360px] gap-10">
+                    <div>
+                        <div className="tracking-editorial mb-4">Active coupons</div>
+                        {coupons.length === 0 ? (
+                            <div className="text-muted2 text-sm">No coupons yet.</div>
+                        ) : (
+                            <div className="divide-y divide-[#E5E3DC] border-t border-b border-[#E5E3DC]">
+                                {coupons.map((c) => (
+                                    <div key={c.code} data-testid={`coupon-row-${c.code}`} className="flex items-center gap-4 py-4 text-sm">
+                                        <div className="font-serif text-2xl w-32">{c.code}</div>
+                                        <div className="flex-1">
+                                            <div>{c.percent_off > 0 ? `${c.percent_off}% off` : ""}{c.flat_off > 0 ? ` ${formatINR(c.flat_off)} off` : ""}</div>
+                                            <div className="text-xs text-muted2">Min order {formatINR(c.min_order)}</div>
+                                        </div>
+                                        <span className={`text-xs tracking-editorial ${c.active ? "text-amber2" : "text-muted2"}`}>{c.active ? "Active" : "Inactive"}</span>
+                                        <button data-testid={`coupon-delete-${c.code}`} onClick={() => deleteCoupon(c.code)} className="text-muted2 hover:text-amber2"><Trash2 size={14} /></button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                    <form onSubmit={createCoupon} className="bg-ivory-2 p-6 space-y-3 self-start">
+                        <div className="tracking-editorial mb-2">New coupon</div>
+                        <input data-testid="coupon-new-code" required placeholder="Code (e.g. DIWALI20)" value={newCoupon.code} onChange={(e) => setNewCoupon({ ...newCoupon, code: e.target.value.toUpperCase() })} className="w-full border-b border-charcoal/30 bg-transparent py-2 outline-none focus:border-amber2 text-sm" />
+                        <div className="grid grid-cols-2 gap-3">
+                            <div>
+                                <div className="text-[10px] text-muted2 mb-1">% off</div>
+                                <input data-testid="coupon-new-percent" type="number" min="0" max="100" value={newCoupon.percent_off} onChange={(e) => setNewCoupon({ ...newCoupon, percent_off: Number(e.target.value) })} className="w-full border-b border-charcoal/30 bg-transparent py-2 outline-none text-sm" />
+                            </div>
+                            <div>
+                                <div className="text-[10px] text-muted2 mb-1">Flat ₹ off</div>
+                                <input data-testid="coupon-new-flat" type="number" min="0" value={newCoupon.flat_off} onChange={(e) => setNewCoupon({ ...newCoupon, flat_off: Number(e.target.value) })} className="w-full border-b border-charcoal/30 bg-transparent py-2 outline-none text-sm" />
+                            </div>
+                        </div>
+                        <div>
+                            <div className="text-[10px] text-muted2 mb-1">Min order ₹</div>
+                            <input data-testid="coupon-new-min" type="number" min="0" value={newCoupon.min_order} onChange={(e) => setNewCoupon({ ...newCoupon, min_order: Number(e.target.value) })} className="w-full border-b border-charcoal/30 bg-transparent py-2 outline-none text-sm" />
+                        </div>
+                        <label className="flex items-center gap-2 text-sm pt-2">
+                            <input type="checkbox" checked={newCoupon.active} onChange={(e) => setNewCoupon({ ...newCoupon, active: e.target.checked })} className="accent-[#B85B24]" /> Active
+                        </label>
+                        <button data-testid="coupon-create-btn" className="w-full bg-charcoal text-ivory py-3 tracking-editorial hover:bg-amber2 transition-colors">Create coupon</button>
+                    </form>
                 </div>
             )}
         </div>

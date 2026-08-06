@@ -30,7 +30,7 @@ export default function Footer() {
                     <div className="md:col-span-5">
                         <div className="font-serif text-5xl mb-6">Adore</div>
                         <p className="text-ivory/70 max-w-md leading-relaxed text-[15px]">
-                            Editorial lighting for considered interiors. Handmade, sourced with intention, delivered with care across {BRAND.cities.length} cities in India.
+                            Editorial lighting for considered interiors. Handmade, sourced with intention, delivered with care across India.
                         </p>
                         <form onSubmit={submit} className="mt-10 max-w-md">
                             <div className="tracking-editorial text-ivory/60 mb-3">Join the atelier</div>
@@ -64,7 +64,6 @@ export default function Footer() {
                         <div className="tracking-editorial text-ivory/60 mb-5">Studio</div>
                         <ul className="space-y-3 text-sm text-ivory/80">
                             <li><Link to="/about" className="underline-link">Our Story</Link></li>
-                            <li><Link to="/stores" className="underline-link">Stores</Link></li>
                             <li><Link to="/bespoke" className="underline-link">Bespoke</Link></li>
                             <li><Link to="/trade" className="underline-link">For Architects</Link></li>
                             <li><Link to="/contact" className="underline-link">Contact</Link></li>
@@ -88,7 +87,7 @@ export default function Footer() {
                 </div>
 
                 <div className="mt-20 pt-8 border-t border-ivory/15 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                    <div className="text-xs text-ivory/50">© {new Date().getFullYear()} Adore Lighting. Est. {new Date().getFullYear() - BRAND.yearsInBusiness}. All rights reserved.</div>
+                    <div className="text-xs text-ivory/50">© {new Date().getFullYear()} Adore Lighting. All rights reserved.</div>
                     <div className="flex items-center gap-4">
                         <a data-testid="social-instagram" href={BRAND.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-ivory/70 hover:text-amber2 transition-colors"><Instagram size={18} /></a>
                         <a data-testid="social-facebook" href={BRAND.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-ivory/70 hover:text-amber2 transition-colors"><Facebook size={18} /></a>

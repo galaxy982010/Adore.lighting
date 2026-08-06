@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { toast } from "sonner";
-import { Heart, ShoppingBag, Truck, Sparkles, Shield, RotateCcw, Star, Lock } from "lucide-react";
+import { Heart, ShoppingBag, Truck, Sparkles, RotateCcw, Star, Lock } from "lucide-react";
 import { api, formatINR } from "@/lib/api";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
@@ -97,7 +97,7 @@ export default function Product() {
                     </div>
 
                     <div className="mt-6 text-2xl font-serif">{formatINR(product.price)}</div>
-                    <div className="text-xs text-muted2 mt-1">Inclusive of GST · EMI available on checkout</div>
+                    <div className="text-xs text-muted2 mt-1">Inclusive of GST · Complimentary shipping across India</div>
                     <p className="mt-6 text-charcoal/75 leading-relaxed">{product.description}</p>
 
                     {/* Warm/Cool toggle */}
@@ -127,10 +127,10 @@ export default function Product() {
                     {/* Trust badges */}
                     <div className="mt-6 grid grid-cols-2 gap-3">
                         {[
-                            [<Truck size={14} className="text-amber2" />, "Free shipping ₹50k+"],
-                            [<Shield size={14} className="text-amber2" />, "5-year warranty"],
-                            [<RotateCcw size={14} className="text-amber2" />, "14-day returns"],
-                            [<Lock size={14} className="text-amber2" />, "Secure Razorpay checkout"],
+                            [<Truck size={14} className="text-amber2" />, "Complimentary shipping"],
+                            [<RotateCcw size={14} className="text-amber2" />, "48-hr claim window"],
+                            [<Sparkles size={14} className="text-amber2" />, "Carefully packed"],
+                            [<Lock size={14} className="text-amber2" />, "Secure checkout"],
                         ].map(([Icon, t], i) => (
                             <div key={i} className="flex items-center gap-2 text-xs bg-ivory-2 px-3 py-2.5">
                                 {Icon}<span>{t}</span>
@@ -143,15 +143,15 @@ export default function Product() {
                         <div className="flex items-start gap-4">
                             <Truck size={16} className="mt-1 text-amber2" />
                             <div>
-                                <div className="text-sm font-medium">White-glove delivery & installation</div>
-                                <div className="text-xs text-muted2 mt-1">6–14 working days · complimentary above ₹50,000</div>
+                                <div className="text-sm font-medium">Complimentary shipping across India</div>
+                                <div className="text-xs text-muted2 mt-1">Dispatched in 48 hours · 5–6 working days delivery</div>
                             </div>
                         </div>
                         <div className="flex items-start gap-4">
                             <Sparkles size={16} className="mt-1 text-amber2" />
                             <div>
-                                <div className="text-sm font-medium">Repair & re-finish service</div>
-                                <div className="text-xs text-muted2 mt-1">Bring any Adore piece back to us — we'll restore it</div>
+                                <div className="text-sm font-medium">Carefully packed & inspected</div>
+                                <div className="text-xs text-muted2 mt-1">Record an unboxing video to enable easy replacement</div>
                             </div>
                         </div>
                     </div>
@@ -162,7 +162,6 @@ export default function Product() {
                         <span className="px-2 py-1 border border-charcoal/20 rounded">UPI</span>
                         <span className="px-2 py-1 border border-charcoal/20 rounded">Cards</span>
                         <span className="px-2 py-1 border border-charcoal/20 rounded">Netbanking</span>
-                        <span className="px-2 py-1 border border-charcoal/20 rounded">EMI</span>
                     </div>
 
                     {/* Specs */}

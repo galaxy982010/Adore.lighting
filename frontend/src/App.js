@@ -10,7 +10,6 @@ import Product from "@/pages/Product";
 import Cart from "@/pages/Cart";
 import Checkout from "@/pages/Checkout";
 import About from "@/pages/About";
-import StoreLocator from "@/pages/StoreLocator";
 import Bespoke from "@/pages/Bespoke";
 import Trade from "@/pages/Trade";
 import Rooms from "@/pages/Rooms";
@@ -38,7 +37,7 @@ function App() {
                             <Route path="cart" element={<Cart />} />
                             <Route path="checkout" element={<Checkout />} />
                             <Route path="about" element={<About />} />
-                            <Route path="stores" element={<StoreLocator />} />
+                            <Route path="stores" element={<Home />} />
                             <Route path="bespoke" element={<Bespoke />} />
                             <Route path="trade" element={<Trade />} />
                             <Route path="track" element={<Track />} />
@@ -47,6 +46,7 @@ function App() {
                             <Route path="auth" element={<Auth />} />
                             <Route path="wishlist" element={<Wishlist />} />
                             <Route path="admin" element={<Admin />} />
+                            <Route path="adore-admin" element={<Admin />} />
                             <Route path="*" element={<NotFound />} />
                         </Route>
                     </Routes>

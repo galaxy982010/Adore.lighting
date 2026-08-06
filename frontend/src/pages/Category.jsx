@@ -1,27 +1,33 @@
 import { useEffect, useState } from "react";
-import { useParams, useLocation, Link } from "react-router-dom";
+import { useParams, useLocation, useSearchParams, Link } from "react-router-dom";
 import { api, CATEGORIES, ROOMS } from "@/lib/api";
 import ProductCard from "@/components/ProductCard";
 
 export default function Category() {
     const { category, room } = useParams();
     const { pathname } = useLocation();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const sub = searchParams.get("sub") || "";
     const isRoom = pathname.startsWith("/rooms/");
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [filters, setFilters] = useState({ min_price: "", max_price: "", finish: "", style: "", bulb_type: "" });
+    const [filters, setFilters] = useState({ min_price: "", max_price: "", finish: "", style: "" });
     const [sort, setSort] = useState("featured");
 
+    const catEntry = CATEGORIES.find((c) => c.slug === category);
     const roomEntry = isRoom ? ROOMS.find((r) => r.slug === room?.toLowerCase()) : null;
     const meta = isRoom
         ? { name: roomEntry?.name || room, tag: "Shop by Room", blurb: `Considered lighting for the ${(roomEntry?.name || room).toLowerCase()} — layered and warm.` }
-        : CATEGORIES.find((c) => c.slug === category) || { name: category, tag: "Collection" };
+        : { name: catEntry?.name || category, tag: "Collection", blurb: catEntry?.description };
 
     useEffect(() => {
         setLoading(true);
         const params = {};
         if (isRoom) params.room = room;
-        else params.category = category;
+        else {
+            params.category = category;
+            if (sub) params.subcategory = sub;
+        }
         Object.entries(filters).forEach(([k, v]) => { if (v) params[k] = v; });
         api.get("/products", { params }).then((r) => {
             let list = r.data;
@@ -31,21 +37,48 @@ export default function Category() {
             setProducts(list);
             setLoading(false);
         });
-    }, [category, room, isRoom, filters, sort]);
+    }, [category, room, isRoom, sub, filters, sort]);
 
     const finishes = [...new Set(products.map((p) => p.finish).filter(Boolean))];
     const styles = [...new Set(products.map((p) => p.style).filter(Boolean))];
 
+    const setSub = (s) => {
+        if (s) setSearchParams({ sub: s });
+        else setSearchParams({});
+    };
+
     return (
         <div>
-            <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-16 pb-10">
+            <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-16 pb-6">
                 <div className="tracking-editorial text-muted2 mb-4">{meta.tag}</div>
                 <h1 className="font-serif text-5xl md:text-6xl">{meta.name}</h1>
                 {meta.blurb && <p className="mt-4 max-w-xl text-charcoal/70">{meta.blurb}</p>}
             </div>
 
-            <div className="max-w-[1400px] mx-auto px-6 md:px-10 grid lg:grid-cols-[240px_1fr] gap-12 pb-24">
-                {/* Filters */}
+            {/* Subcategory chips */}
+            {!isRoom && catEntry?.subs && (
+                <div className="max-w-[1400px] mx-auto px-6 md:px-10 flex flex-wrap gap-3 mb-4">
+                    <button
+                        data-testid="sub-all"
+                        onClick={() => setSub("")}
+                        className={`px-4 py-2 text-xs tracking-editorial border transition-colors ${!sub ? "bg-charcoal text-ivory border-charcoal" : "border-charcoal/30 hover:border-amber2 hover:text-amber2"}`}
+                    >
+                        All {meta.name}
+                    </button>
+                    {catEntry.subs.map((s) => (
+                        <button
+                            key={s.slug}
+                            data-testid={`sub-${s.slug}`}
+                            onClick={() => setSub(s.slug)}
+                            className={`px-4 py-2 text-xs tracking-editorial border transition-colors ${sub === s.slug ? "bg-charcoal text-ivory border-charcoal" : "border-charcoal/30 hover:border-amber2 hover:text-amber2"}`}
+                        >
+                            {s.name}
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            <div className="max-w-[1400px] mx-auto px-6 md:px-10 grid lg:grid-cols-[240px_1fr] gap-12 pb-24 pt-6">
                 <aside className="hidden lg:block sticky top-32 self-start">
                     <div className="tracking-editorial mb-4">Refine</div>
                     <div className="space-y-6 text-sm">
@@ -74,7 +107,7 @@ export default function Category() {
                                 </select>
                             </div>
                         )}
-                        <button onClick={() => setFilters({ min_price: "", max_price: "", finish: "", style: "", bulb_type: "" })} className="tracking-editorial hover:text-amber2">Clear all</button>
+                        <button onClick={() => setFilters({ min_price: "", max_price: "", finish: "", style: "" })} className="tracking-editorial hover:text-amber2">Clear all</button>
                     </div>
                 </aside>
 
