@@ -1,7 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import { useLocation, Link } from "react-router-dom";
 import { X, ChevronRight } from "lucide-react";
-import { api, formatINR } from "@/lib/api";
+import * as Shopify from "@/lib/shopify";
+import { formatINR } from "@/lib/api";
 
 const HIDDEN_ROUTES = ["/adore-admin", "/checkout", "/cart", "/auth"];
 const INTERVAL_MS = 60000; // 1 minute
@@ -22,11 +23,14 @@ export default function ProductTeaserPopup() {
     const isHidden = HIDDEN_ROUTES.some((r) => pathname.startsWith(r));
 
     useEffect(() => {
-        api.get("/products", { params: { featured: true } }).then((r) => {
-            // shuffle
-            const list = [...r.data].sort(() => Math.random() - 0.5);
-            setPool(list);
-        });
+        Shopify.listProducts({ first: 50 })
+            .then((list) => {
+                const featured = list.filter((p) => p.featured);
+                const source = featured.length ? featured : list;
+                const shuffled = [...source].sort(() => Math.random() - 0.5);
+                setPool(shuffled);
+            })
+            .catch(() => setPool([]));
     }, []);
 
     useEffect(() => {
@@ -78,7 +82,7 @@ export default function ProductTeaserPopup() {
                         <img src={current.images?.[0]} alt={current.name} loading="lazy" className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 py-4 pr-8 min-w-0">
-                        <div className="tracking-editorial text-amber2 mb-1 text-[9px]">Just Viewed</div>
+                        <div className="tracking-editorial text-amber2 mb-1 text-[9px]">Featured Piece</div>
                         <div className="font-serif text-lg leading-tight truncate">{current.name}</div>
                         <div className="text-xs text-muted2 mt-1 capitalize">{current.category.replace(/-/g, " ")}</div>
                         <div className="mt-2 text-sm font-medium">{formatINR(current.price)}</div>

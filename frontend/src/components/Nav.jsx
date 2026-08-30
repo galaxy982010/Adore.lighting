@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { ShoppingBag, Search, User, Menu, X, Heart } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
-import { api, formatINR } from "@/lib/api";
+import { formatINR } from "@/lib/api";
+import * as Shopify from "@/lib/shopify";
 
 // Minimal luxury header:
 //   Announcement bar · logo-centered nav · essential icons (search / wishlist / account / cart).
@@ -15,15 +16,27 @@ export default function Nav() {
     const [searchOpen, setSearchOpen] = useState(false);
     const [q, setQ] = useState("");
     const [results, setResults] = useState([]);
+    const [announcement, setAnnouncement] = useState("Complimentary Shipping Across India");
     const navigate = useNavigate();
     const searchRef = useRef(null);
+
+    // Listen to hero-slide-driven announcement broadcasts.
+    useEffect(() => {
+        const onMsg = (e) => setAnnouncement(e.detail || "Complimentary Shipping Across India");
+        window.addEventListener("adore:announcement", onMsg);
+        return () => window.removeEventListener("adore:announcement", onMsg);
+    }, []);
 
     useEffect(() => {
         if (!q) return setResults([]);
         const t = setTimeout(async () => {
-            const r = await api.get("/products", { params: { search: q } });
-            setResults(r.data.slice(0, 6));
-        }, 200);
+            try {
+                const list = await Shopify.listProducts({ first: 8, query: q });
+                setResults(list);
+            } catch {
+                setResults([]);
+            }
+        }, 250);
         return () => clearTimeout(t);
     }, [q]);
 
@@ -42,8 +55,8 @@ export default function Nav() {
         <header className="sticky top-0 z-50 backdrop-blur-xl bg-ivory/90 border-b border-[#E5E3DC]">
             <div className="max-w-[1400px] mx-auto px-6 md:px-10">
                 {/* announcement */}
-                <div className="hidden md:flex justify-center text-[11px] tracking-editorial text-muted2 py-2 border-b border-[#E5E3DC]/70">
-                    Complimentary Shipping Across India
+                <div key={announcement} className="flex justify-center text-center text-[10px] md:text-[11px] tracking-editorial text-muted2 py-2 border-b border-[#E5E3DC]/70 px-4 transition-opacity duration-500">
+                    {announcement}
                 </div>
 
                 <div className="grid grid-cols-[auto_1fr_auto] items-center h-20 gap-4">
@@ -108,6 +121,7 @@ export default function Nav() {
                     <nav className="px-6 py-4 flex flex-col gap-2">
                         <Link to="/" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Home</Link>
                         <Link to="/about" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Our Story</Link>
+                        <Link to="/kits" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Lighting Kits</Link>
                         <Link to="/bespoke" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Bespoke</Link>
                         <Link to="/track" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Track Order</Link>
                         <Link to="/contact" onClick={() => setOpen(false)} className="py-3 text-sm">Contact</Link>

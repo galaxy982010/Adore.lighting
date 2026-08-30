@@ -1,54 +1,105 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { toast } from "sonner";
+import * as Shopify from "@/lib/shopify";
 
 const CartContext = createContext(null);
 
+const CART_ID_KEY = "adore_shopify_cart_id";
+
 export const CartProvider = ({ children }) => {
-    const [items, setItems] = useState(() => {
-        try {
-            return JSON.parse(localStorage.getItem("adore_cart") || "[]");
-        } catch {
-            return [];
-        }
-    });
+    const [cart, setCart] = useState(null);
+    const [loading, setLoading] = useState(false);
 
+    // Restore cart from localStorage
     useEffect(() => {
-        localStorage.setItem("adore_cart", JSON.stringify(items));
-    }, [items]);
+        const id = localStorage.getItem(CART_ID_KEY);
+        if (!id || !Shopify.isShopifyConfigured()) return;
+        Shopify.getCart(id)
+            .then((c) => {
+                if (c && c.lines.length >= 0) setCart(c);
+                else localStorage.removeItem(CART_ID_KEY);
+            })
+            .catch(() => {
+                localStorage.removeItem(CART_ID_KEY);
+            });
+    }, []);
 
-    const addItem = (product, qty = 1) => {
-        setItems((cur) => {
-            const found = cur.find((i) => i.id === product.id);
-            if (found) {
-                return cur.map((i) => (i.id === product.id ? { ...i, quantity: i.quantity + qty } : i));
+    const addItem = async (variantId, qty = 1) => {
+        if (!variantId) {
+            toast.error("Please select an option");
+            return;
+        }
+        setLoading(true);
+        try {
+            let next;
+            if (!cart) {
+                next = await Shopify.cartCreate([{ merchandiseId: variantId, quantity: qty }]);
+                if (next?.id) localStorage.setItem(CART_ID_KEY, next.id);
+            } else {
+                next = await Shopify.cartLinesAdd(cart.id, [{ merchandiseId: variantId, quantity: qty }]);
             }
-            return [
-                ...cur,
-                {
-                    id: product.id,
-                    name: product.name,
-                    slug: product.slug,
-                    price: product.price,
-                    image: (product.images || [])[0],
-                    quantity: qty,
-                },
-            ];
-        });
+            setCart(next);
+            return next;
+        } catch (e) {
+            toast.error(e.message || "Unable to add to cart");
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const removeItem = (id) => setItems((cur) => cur.filter((i) => i.id !== id));
+    const updateQty = async (lineId, qty) => {
+        if (!cart) return;
+        setLoading(true);
+        try {
+            const next = await Shopify.cartLinesUpdate(cart.id, [
+                { id: lineId, quantity: Math.max(1, qty) },
+            ]);
+            setCart(next);
+        } catch (e) {
+            toast.error(e.message || "Update failed");
+        } finally {
+            setLoading(false);
+        }
+    };
 
-    const updateQty = (id, qty) =>
-        setItems((cur) =>
-            cur.map((i) => (i.id === id ? { ...i, quantity: Math.max(1, qty) } : i))
-        );
+    const removeItem = async (lineId) => {
+        if (!cart) return;
+        setLoading(true);
+        try {
+            const next = await Shopify.cartLinesRemove(cart.id, [lineId]);
+            setCart(next);
+        } catch (e) {
+            toast.error(e.message || "Remove failed");
+        } finally {
+            setLoading(false);
+        }
+    };
 
-    const clear = () => setItems([]);
+    const clear = () => {
+        localStorage.removeItem(CART_ID_KEY);
+        setCart(null);
+    };
 
-    const total = items.reduce((s, i) => s + i.price * i.quantity, 0);
-    const count = items.reduce((s, i) => s + i.quantity, 0);
+    const items = cart?.lines || [];
+    const count = cart?.totalQuantity || 0;
+    const total = cart?.subtotal || 0;
+    const checkoutUrl = cart?.checkoutUrl;
 
     return (
-        <CartContext.Provider value={{ items, addItem, removeItem, updateQty, clear, total, count }}>
+        <CartContext.Provider
+            value={{
+                cart,
+                items,
+                count,
+                total,
+                checkoutUrl,
+                addItem,
+                updateQty,
+                removeItem,
+                clear,
+                loading,
+            }}
+        >
             {children}
         </CartContext.Provider>
     );

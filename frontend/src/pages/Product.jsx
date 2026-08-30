@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Heart, ShoppingBag, Truck, Sparkles, RotateCcw, Star, Lock } from "lucide-react";
-import { api, formatINR } from "@/lib/api";
+import { formatINR } from "@/lib/api";
+import * as Shopify from "@/lib/shopify";
+import { api } from "@/lib/api";
+import { addToWishlist } from "@/pages/Wishlist";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import ProductCard from "@/components/ProductCard";
@@ -15,55 +18,75 @@ const REVIEWS = [
 
 export default function Product() {
     const { slug } = useParams();
+    const navigate = useNavigate();
     const [product, setProduct] = useState(null);
+    const [notFound, setNotFound] = useState(false);
     const [related, setRelated] = useState([]);
     const [activeImg, setActiveImg] = useState(0);
+    const [variantId, setVariantId] = useState(null);
     const [qty, setQty] = useState(1);
-    const [temp, setTemp] = useState("warm");
     const [zoomed, setZoomed] = useState(false);
-    const { addItem } = useCart();
+    const { addItem, loading: cartLoading } = useCart();
     const { user } = useAuth();
 
     useEffect(() => {
-        api.get(`/products/${slug}`).then((r) => {
-            setProduct(r.data);
-            setActiveImg(0);
-            api.get("/products", { params: { category: r.data.category } }).then((rr) => {
-                setRelated(rr.data.filter((p) => p.id !== r.data.id).slice(0, 4));
-            });
-        });
+        setNotFound(false);
+        setProduct(null);
+        Shopify.getProductByHandle(slug)
+            .then((p) => {
+                if (!p) { setNotFound(true); return; }
+                setProduct(p);
+                setActiveImg(0);
+                setVariantId(p.variants?.[0]?.id || p.firstVariantId || null);
+                Shopify.listProducts({ first: 100 })
+                    .then((list) => setRelated(list.filter((x) => x.slug !== p.slug && x.category === p.category).slice(0, 4)))
+                    .catch(() => setRelated([]));
+            })
+            .catch(() => setNotFound(true));
     }, [slug]);
 
+    if (notFound) {
+        return (
+            <div className="max-w-[900px] mx-auto py-32 text-center">
+                <div className="tracking-editorial text-muted2 mb-4">404</div>
+                <h1 className="font-serif text-4xl md:text-5xl mb-8">This piece isn't listed yet.</h1>
+                <button onClick={() => navigate("/")} className="bg-charcoal text-ivory px-8 py-4 tracking-editorial hover:bg-amber2 transition-colors">Return home</button>
+            </div>
+        );
+    }
     if (!product) return <div className="py-40 text-center text-muted2">Loading…</div>;
 
-    const add = () => {
-        addItem(product, qty);
-        toast.success("Added to cart");
+    const activeVariant = product.variants.find((v) => v.id === variantId) || product.variants[0];
+    const currentPrice = activeVariant?.price || product.price;
+
+    const add = async () => {
+        if (!variantId) { toast.error("Please select an option"); return; }
+        const c = await addItem(variantId, qty);
+        if (c) toast.success("Added to cart");
     };
 
-    const wishlist = async () => {
-        if (!user) return toast.error("Sign in to save favourites", { action: { label: "Sign in", onClick: () => (window.location.href = "/auth") } });
-        try {
-            await api.post(`/wishlist/${product.id}`);
-            toast.success("Saved to wishlist");
-        } catch {
-            toast.error("Please try again");
-        }
+    const wishlist = () => {
+        addToWishlist(product.handle);
+        toast.success("Saved to wishlist");
     };
 
     const avg = (REVIEWS.reduce((s, r) => s + r.rating, 0) / REVIEWS.length).toFixed(1);
+    const hasMultipleVariants = product.variants.length > 1;
 
     return (
         <div>
             <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-10 text-xs tracking-editorial text-muted2">
-                <Link to="/">Home</Link> · <Link to={`/shop/${product.category}`}>{product.category}</Link> · <span className="text-charcoal">{product.name}</span>
+                <Link to="/">Home</Link> · {product.category && <><Link to={`/shop/${product.category}`}>{product.category}</Link> · </>}<span className="text-charcoal">{product.name}</span>
             </div>
 
             <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-8 pb-24 grid lg:grid-cols-[1.15fr_1fr] gap-12 lg:gap-20">
-                {/* Gallery */}
                 <div>
                     <div className={`aspect-[4/5] bg-ivory-2 overflow-hidden ${zoomed ? "cursor-zoom-out" : "cursor-zoom-in"}`} onClick={() => setZoomed(!zoomed)}>
-                        <img src={product.images[activeImg]} alt={product.name} className={`w-full h-full object-cover transition-transform duration-700 ${zoomed ? "scale-150" : "scale-100 hover:scale-105"}`} />
+                        {product.images[activeImg] ? (
+                            <img src={product.images[activeImg]} alt={product.name} className={`w-full h-full object-cover transition-transform duration-700 ${zoomed ? "scale-150" : "scale-100 hover:scale-105"}`} />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center text-muted2 text-sm">No image</div>
+                        )}
                     </div>
                     {product.images.length > 1 && (
                         <div className="mt-4 grid grid-cols-4 gap-3">
@@ -74,21 +97,12 @@ export default function Product() {
                             ))}
                         </div>
                     )}
-                    {/* Room shot */}
-                    <div className="mt-8">
-                        <div className="tracking-editorial text-muted2 mb-3">See it in a room</div>
-                        <div className="aspect-[16/10] overflow-hidden bg-ivory-2">
-                            <img src="https://images.unsplash.com/photo-1706820229870-f9a8c6dac193?w=1600&q=85" alt="Styled in room" loading="lazy" className="w-full h-full object-cover" />
-                        </div>
-                    </div>
                 </div>
 
-                {/* Details */}
                 <div className="lg:sticky lg:top-32 self-start">
-                    <div className="tracking-editorial text-muted2 mb-3">{product.category}</div>
+                    {product.category && <div className="tracking-editorial text-muted2 mb-3 capitalize">{product.category.replace(/-/g, " ")}</div>}
                     <h1 className="font-serif text-4xl md:text-5xl leading-tight">{product.name}</h1>
 
-                    {/* Rating */}
                     <div className="mt-3 flex items-center gap-3 text-sm">
                         <div className="flex items-center gap-0.5 text-amber2">
                             {[1, 2, 3, 4, 5].map((n) => <Star key={n} size={14} fill={n <= Math.round(avg) ? "currentColor" : "none"} strokeWidth={1.5} />)}
@@ -96,35 +110,48 @@ export default function Product() {
                         <span className="text-muted2">{avg} · {REVIEWS.length} reviews</span>
                     </div>
 
-                    <div className="mt-6 text-2xl font-serif">{formatINR(product.price)}</div>
-                    <div className="text-xs text-muted2 mt-1">Inclusive of GST · Complimentary shipping across India</div>
-                    <p className="mt-6 text-charcoal/75 leading-relaxed">{product.description}</p>
-
-                    {/* Warm/Cool toggle */}
-                    <div className="mt-8">
-                        <div className="tracking-editorial mb-3">Colour temperature</div>
-                        <div className="inline-flex border border-charcoal/20">
-                            <button data-testid="temp-warm" onClick={() => setTemp("warm")} className={`px-5 py-2 text-sm tracking-editorial ${temp === "warm" ? "bg-charcoal text-ivory" : "hover:bg-ivory-2"}`}>Warm White · 2700K</button>
-                            <button data-testid="temp-cool" onClick={() => setTemp("cool")} className={`px-5 py-2 text-sm tracking-editorial border-l border-charcoal/20 ${temp === "cool" ? "bg-charcoal text-ivory" : "hover:bg-ivory-2"}`}>Cool White · 4000K</button>
-                        </div>
+                    <div className="mt-6 flex items-baseline gap-3">
+                        <div data-testid="product-price" className="text-2xl font-serif">{formatINR(currentPrice)}</div>
+                        {product.compareAtPrice > currentPrice && (
+                            <div className="text-sm text-muted2 line-through">{formatINR(product.compareAtPrice)}</div>
+                        )}
                     </div>
+                    <div className="text-xs text-muted2 mt-1">Inclusive of GST · Complimentary shipping across India</div>
+                    {product.description && <p className="mt-6 text-charcoal/75 leading-relaxed whitespace-pre-line">{product.description}</p>}
 
-                    {/* Qty + Actions */}
+                    {hasMultipleVariants && (
+                        <div className="mt-8">
+                            <div className="tracking-editorial mb-3">Options</div>
+                            <div className="flex flex-wrap gap-2">
+                                {product.variants.map((v) => (
+                                    <button
+                                        key={v.id}
+                                        data-testid={`variant-${v.id.split("/").pop()}`}
+                                        onClick={() => setVariantId(v.id)}
+                                        disabled={!v.availableForSale}
+                                        className={`px-4 py-2 text-sm border transition-colors ${variantId === v.id ? "bg-charcoal text-ivory border-charcoal" : "border-charcoal/20 hover:border-amber2 hover:text-amber2"} ${!v.availableForSale ? "opacity-40 line-through" : ""}`}
+                                    >
+                                        {v.title}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     <div className="mt-8 flex items-center gap-4">
                         <div className="flex items-center border border-charcoal/20">
                             <button data-testid="qty-decrease" onClick={() => setQty(Math.max(1, qty - 1))} className="px-4 py-3 hover:bg-ivory-2">−</button>
                             <span className="px-4 py-3 min-w-[3rem] text-center">{qty}</span>
                             <button data-testid="qty-increase" onClick={() => setQty(qty + 1)} className="px-4 py-3 hover:bg-ivory-2">+</button>
                         </div>
-                        <button data-testid="add-to-cart-btn" onClick={add} className="flex-1 bg-charcoal text-ivory py-4 tracking-editorial hover:bg-amber2 transition-colors flex items-center justify-center gap-2">
-                            <ShoppingBag size={14} /> Add to bag
+                        <button data-testid="add-to-cart-btn" onClick={add} disabled={cartLoading || !product.availableForSale} className="flex-1 bg-charcoal text-ivory py-4 tracking-editorial hover:bg-amber2 transition-colors flex items-center justify-center gap-2 disabled:opacity-50">
+                            <ShoppingBag size={14} /> {product.availableForSale ? (cartLoading ? "Adding…" : "Add to bag") : "Sold out"}
                         </button>
                         <button data-testid="wishlist-btn" onClick={wishlist} className="p-4 border border-charcoal/20 hover:border-amber2 hover:text-amber2" aria-label="Add to wishlist">
                             <Heart size={16} />
                         </button>
                     </div>
 
-                    {/* Trust badges */}
                     <div className="mt-6 grid grid-cols-2 gap-3">
                         {[
                             [<Truck size={14} className="text-amber2" />, "Complimentary shipping"],
@@ -138,7 +165,6 @@ export default function Product() {
                         ))}
                     </div>
 
-                    {/* Meta */}
                     <div className="mt-10 space-y-4 border-t border-[#E5E3DC] pt-8">
                         <div className="flex items-start gap-4">
                             <Truck size={16} className="mt-1 text-amber2" />
@@ -156,32 +182,15 @@ export default function Product() {
                         </div>
                     </div>
 
-                    {/* Payment icons */}
                     <div className="mt-8 flex items-center gap-3 text-[10px] tracking-editorial text-muted2">
                         <span>Pay securely with</span>
                         <span className="px-2 py-1 border border-charcoal/20 rounded">UPI</span>
                         <span className="px-2 py-1 border border-charcoal/20 rounded">Cards</span>
                         <span className="px-2 py-1 border border-charcoal/20 rounded">Netbanking</span>
                     </div>
-
-                    {/* Specs */}
-                    <div className="mt-12">
-                        <div className="tracking-editorial mb-4">Specifications</div>
-                        <table className="w-full text-sm">
-                            <tbody className="divide-y divide-[#E5E3DC]">
-                                {product.dimensions && <tr><td className="py-3 text-muted2 w-1/3">Dimensions</td><td className="py-3">{product.dimensions}</td></tr>}
-                                {product.material && <tr><td className="py-3 text-muted2">Material</td><td className="py-3">{product.material}</td></tr>}
-                                {product.finish && <tr><td className="py-3 text-muted2">Finish</td><td className="py-3">{product.finish}</td></tr>}
-                                {product.bulb_type && <tr><td className="py-3 text-muted2">Bulb</td><td className="py-3">{product.bulb_type}</td></tr>}
-                                {product.style && <tr><td className="py-3 text-muted2">Style</td><td className="py-3">{product.style}</td></tr>}
-                                <tr><td className="py-3 text-muted2">Colour temp.</td><td className="py-3 capitalize">{temp} white · {temp === "warm" ? "2700K" : "4000K"}</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
                 </div>
             </div>
 
-            {/* REVIEWS */}
             <section className="border-t border-[#E5E3DC] py-24 bg-ivory-2">
                 <div className="max-w-[1400px] mx-auto px-6 md:px-10">
                     <div className="flex flex-wrap items-end justify-between mb-12 gap-4">
@@ -220,7 +229,6 @@ export default function Product() {
                 </div>
             </section>
 
-            {/* Shop the room / related */}
             {related.length > 0 && (
                 <section className="border-t border-[#E5E3DC] py-24">
                     <div className="max-w-[1400px] mx-auto px-6 md:px-10">

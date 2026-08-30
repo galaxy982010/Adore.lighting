@@ -366,31 +366,9 @@ async def delete_product(product_id: str, admin=Depends(require_admin)):
     return {"ok": True}
 
 
-# ---- Uploads ----
-@api_router.post("/upload")
-async def upload_file(file: UploadFile = File(...), admin=Depends(require_admin)):
-    ext = Path(file.filename).suffix.lower()
-    if ext not in [".jpg", ".jpeg", ".png", ".webp", ".gif"]:
-        raise HTTPException(400, "Invalid file type")
-    # 8 MB cap
-    content = await file.read()
-    if len(content) > 8 * 1024 * 1024:
-        raise HTTPException(413, "File too large (max 8 MB)")
-    fname = f"{uuid.uuid4()}{ext}"
-    path = UPLOAD_DIR / fname
-    with open(path, "wb") as f:
-        f.write(content)
-    return {"url": f"/api/uploads/{fname}"}
-
-
-@api_router.get("/uploads/{filename}")
-async def get_upload(filename: str):
-    # Prevent traversal
-    safe = os.path.basename(filename)
-    path = UPLOAD_DIR / safe
-    if not path.exists() or not path.is_file():
-        raise HTTPException(404)
-    return FileResponse(path)
+# ---- Uploads (legacy admin only; disabled after Shopify migration) ----
+# Product images now come from Shopify. If admin uploads are re-enabled,
+# migrate to Emergent object storage.
 
 
 # ---- Wishlist ----

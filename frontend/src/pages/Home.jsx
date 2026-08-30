@@ -1,53 +1,44 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Instagram, Sparkles, Truck, Package, ChevronRight } from "lucide-react";
-import { api, CATEGORIES, BRAND, formatINR } from "@/lib/api";
+import { CATEGORIES, BRAND, formatINR } from "@/lib/api";
+import * as Shopify from "@/lib/shopify";
 import CategoryTile from "@/components/CategoryTile";
 import ProductCard from "@/components/ProductCard";
 import Reveal from "@/components/Reveal";
 
 const HERO_SLIDES = [
     {
-        image: "https://images.unsplash.com/photo-1704040686413-2c607dbd2f06?w=2200&q=90",
+        image: "/hero/slide1.jpg",
         eyebrow: "The Adore Studio",
         title: "Light That Creates\nYour Vibes.",
-        blurb: "Editorial chandeliers, pendants and sculptural lamps — sourced, made and installed with unusual care.",
+        blurb: "An editorial catalogue of chandeliers, pendants and sculptural lamps — sourced with unusual care.",
         cta: { to: "/shop/chandeliers", label: "Explore Chandeliers" },
+        announcement: "Complimentary Shipping Across India",
     },
     {
-        image: "https://images.unsplash.com/photo-1586450428662-92fe683549b9?w=2200&q=90",
-        eyebrow: "Season of Light",
+        image: "/hero/slide2.jpg",
+        eyebrow: "Made Slowly",
         title: "Illuminate\nYour Vibe.",
         blurb: "Grand fixtures for weddings, Diwali homes and the softest evenings of the year.",
         cta: { to: "/shop/double-height-chandeliers", label: "Statement Fixtures" },
+        announcement: "Dispatched in 48 hours · Delivered in 5–6 working days",
     },
     {
-        image: "https://images.unsplash.com/photo-1706820229870-f9a8c6dac193?w=2200&q=90",
+        image: "/hero/slide3.jpg",
         eyebrow: "Considered Interiors",
         title: "Light That Matches\nYour Vibe.",
         blurb: "Layered lighting for living rooms, bedrooms and every quiet room in between.",
         cta: { to: "/shop/ceiling", label: "Ceiling Lights" },
+        announcement: "Trusted by architects & interior designers across India",
     },
     {
-        image: "https://images.unsplash.com/photo-1648415198825-7c805bfa043e?w=2200&q=90",
-        eyebrow: "Pendants & Rings",
-        title: "Suspend the\nOrdinary.",
-        blurb: "Hand-blown glass and linear pendants — quiet horizons of light.",
-        cta: { to: "/shop/pendants", label: "Shop Pendants" },
-    },
-    {
-        image: "https://images.unsplash.com/photo-1775660922989-f0c624413269?w=2200&q=90",
-        eyebrow: "The Wall Edit",
+        image: "/hero/slide4.jpg",
+        eyebrow: "For Every Room",
         title: "Warmth,\nBy Design.",
-        blurb: "Halo sconces, reading lights and heritage picture lights.",
-        cta: { to: "/shop/wall", label: "Shop Wall Lamps" },
-    },
-    {
-        image: "https://images.unsplash.com/photo-1764760764956-fcb78be107a5?w=2200&q=90",
-        eyebrow: "Craft, Considered",
-        title: "Made Slowly.\nDelivered With Care.",
-        blurb: "Hand-blown glass, hand-woven bamboo, hand-cut crystal — an editorial catalogue.",
-        cta: { to: "/shop/bamboo", label: "The Bamboo Edit" },
+        blurb: "Halo sconces, reading lights, table lamps and heritage picture lights.",
+        cta: { to: "/kits", label: "Explore Lighting Kits" },
+        announcement: "Curated Lighting Kits · one look for every room",
     },
 ];
 
@@ -67,14 +58,34 @@ export default function Home() {
     const timer = useRef(null);
 
     useEffect(() => {
-        api.get("/products", { params: { featured: true } }).then((r) => setFeatured(r.data));
-        api.get("/products", { params: { new_arrival: true } }).then((r) => setNew(r.data));
+        // Fetch ALL products from Shopify (single source of truth). Featured
+        // + new-arrival tags aren't set on this store yet, so we simply
+        // slice the catalog for now — as tags get added in Shopify, these
+        // sections will automatically honour them.
+        Shopify.listProducts({ first: 250 })
+            .then((list) => {
+                const tagged = list.filter((p) => p.featured);
+                const newT = list.filter((p) => p.new_arrival);
+                setFeatured(tagged.length ? tagged : list.slice(0, 8));
+                setNew(newT.length ? newT : list.slice(0, 8));
+            })
+            .catch(() => {
+                setFeatured([]);
+                setNew([]);
+            });
     }, []);
 
     useEffect(() => {
         timer.current = setInterval(() => setSlide((s) => (s + 1) % HERO_SLIDES.length), 5000);
         return () => clearInterval(timer.current);
     }, []);
+
+    // Sync announcement bar with active hero slide (heard by Nav).
+    useEffect(() => {
+        const msg = HERO_SLIDES[slide]?.announcement;
+        window.dispatchEvent(new CustomEvent("adore:announcement", { detail: msg }));
+        return () => window.dispatchEvent(new CustomEvent("adore:announcement", { detail: null }));
+    }, [slide]);
 
     const active = HERO_SLIDES[slide];
 
@@ -233,30 +244,29 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* BUNDLES */}
+            {/* BUNDLES / KITS TEASER */}
             <section className="bg-ivory-2 py-24 md:py-32">
                 <div className="max-w-[1400px] mx-auto px-6 md:px-10">
                     <Reveal>
                         <div className="tracking-editorial text-muted2 mb-4">Curated Kits</div>
-                        <h2 className="font-serif text-4xl md:text-5xl mb-4">Complete Room Lighting</h2>
-                        <p className="max-w-xl text-charcoal/70">Layered fixtures pre-selected by our design team — one purchase, one delivery, one installation.</p>
+                        <h2 className="font-serif text-4xl md:text-5xl mb-4">Lighting, one room at a time.</h2>
+                        <p className="max-w-xl text-charcoal/70">Layered lighting compositions our studio suggests for each room — inspiration you can shop piece by piece.</p>
                     </Reveal>
                     <div className="grid md:grid-cols-3 gap-6 md:gap-8 mt-14">
                         {[
-                            { title: "The Dining Kit", tag: "Chandelier · 2 wall sconces · dimmer", price: 245000, save: 22000, image: "https://images.unsplash.com/photo-1586450428662-92fe683549b9?w=1200&q=85" },
-                            { title: "The Bedroom Kit", tag: "Pendant · 2 bedside lamps · reading light", price: 89000, save: 12000, image: "https://images.unsplash.com/photo-1648415198825-7c805bfa043e?w=1200&q=85" },
-                            { title: "The Living Kit", tag: "Arc floor lamp · table lamp · 3 sconces", price: 168000, save: 18000, image: "https://images.unsplash.com/photo-1704040686413-2c607dbd2f06?w=1200&q=85" },
+                            { title: "The Living Room Kit", tag: "Chandelier · wall · table · floor · pendants", image: "/hero/slide1.jpg" },
+                            { title: "The Dining Kit", tag: "Chandelier · sconces · candle pendants", image: "/hero/slide2.jpg" },
+                            { title: "The Bedroom Kit", tag: "Ambient · bedside · reading light", image: "/hero/slide3.jpg" },
                         ].map((k, i) => (
                             <Reveal key={k.title} delay={i * 100}>
-                                <Link to="/bespoke" data-testid={`bundle-${i}`} className="group block">
+                                <Link to="/kits" data-testid={`bundle-${i}`} className="group block">
                                     <div className="aspect-[4/5] overflow-hidden image-zoom">
                                         <img src={k.image} alt={k.title} loading="lazy" className="w-full h-full object-cover" />
                                     </div>
                                     <div className="pt-5">
-                                        <div className="tracking-editorial text-amber2 mb-2">Save {formatINR(k.save)}</div>
+                                        <div className="tracking-editorial text-amber2 mb-2">Suggested layering</div>
                                         <div className="font-serif text-2xl">{k.title}</div>
                                         <div className="text-sm text-muted2 mt-1">{k.tag}</div>
-                                        <div className="mt-2 text-sm">{formatINR(k.price)}</div>
                                     </div>
                                 </Link>
                             </Reveal>

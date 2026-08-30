@@ -2,7 +2,6 @@ import axios from "axios";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
-
 export const api = axios.create({ baseURL: API });
 
 api.interceptors.request.use((config) => {
@@ -30,22 +29,27 @@ export const BRAND = {
     linkedin: "https://www.linkedin.com/in/adore-lighting-596229425",
 };
 
+const IMG = (n) => `/collections/page${n}.jpg`;
+
 export const CATEGORIES = [
-    { slug: "chandeliers", name: "Chandeliers", image: "https://images.unsplash.com/photo-1586450428662-92fe683549b9?w=1200&q=85",
+    { slug: "chandeliers", name: "Chandeliers", image: IMG(11),
       subs: [{ slug: "classic", name: "Classic" }, { slug: "modern", name: "Modern" }] },
-    { slug: "double-height-chandeliers", name: "Double Height Chandeliers", image: "https://images.unsplash.com/photo-1706820229870-f9a8c6dac193?w=1200&q=85",
+    { slug: "double-height-chandeliers", name: "Double Height Chandeliers", image: IMG(9),
       subs: [{ slug: "classic", name: "Classic" }, { slug: "modern", name: "Modern" }] },
-    { slug: "fan-chandeliers", name: "Fan Chandeliers", image: "https://images.unsplash.com/photo-1704040686413-2c607dbd2f06?w=1200&q=85" },
-    { slug: "pendants", name: "Pendants", image: "https://images.unsplash.com/photo-1648415198825-7c805bfa043e?w=1200&q=85",
+    { slug: "fan-chandeliers", name: "Fan Chandeliers", image: IMG(6) },
+    { slug: "pendants", name: "Pendants", image: IMG(8),
       subs: [{ slug: "classic", name: "Classic" }, { slug: "modern", name: "Modern" }] },
-    { slug: "wall", name: "Wall Lamps", image: "https://images.unsplash.com/photo-1775660922989-f0c624413269?w=1200&q=85",
+    { slug: "wall", name: "Wall Lamps", image: IMG(10),
       subs: [{ slug: "classic", name: "Classic" }, { slug: "modern", name: "Modern" }] },
-    { slug: "table", name: "Table Lamps", image: "https://images.unsplash.com/photo-1764760764956-fcb78be107a5?w=1200&q=85" },
-    { slug: "floor", name: "Floor Lamps", image: "https://images.unsplash.com/photo-1704040686413-2c607dbd2f06?w=1200&q=85" },
-    { slug: "ceiling", name: "Ceiling Lights", image: "https://images.unsplash.com/photo-1706820229870-f9a8c6dac193?w=1200&q=85" },
-    { slug: "outdoor", name: "Outdoor", image: "https://images.unsplash.com/photo-1775660922989-f0c624413269?w=1200&q=85" },
-    { slug: "bamboo", name: "Bamboo", image: "https://images.unsplash.com/photo-1764760764956-fcb78be107a5?w=1200&q=85" },
-    { slug: "bulbs", name: "Bulbs", image: "https://images.unsplash.com/photo-1706820229870-f9a8c6dac193?w=1200&q=85",
+    { slug: "table", name: "Table Lamps", image: IMG(1) },
+    { slug: "floor", name: "Floor Lamps", image: IMG(3) },
+    { slug: "ceiling", name: "Ceiling Lights", image: IMG(4) },
+    { slug: "outdoor", name: "Outdoor", image: IMG(7),
+      subs: [{ slug: "gate-lights", name: "Gate Lights" }, { slug: "wall-lamps", name: "Wall Lamps" }] },
+    { slug: "bamboo", name: "Bamboo", image: IMG(2) },
+    { slug: "kids-lights", name: "Kids Lights", image: IMG(4) },
+    { slug: "mirror-lights", name: "Mirror Lights", image: IMG(10) },
+    { slug: "bulbs", name: "Bulbs", image: IMG(5),
       subs: [
         { slug: "e27-4w-filament", name: "E27 · 4W Filament" },
         { slug: "e14-4w-bent-tip-filament", name: "E14 · 4W Bent-Tip Filament" },

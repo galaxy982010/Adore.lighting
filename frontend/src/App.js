@@ -19,6 +19,7 @@ import Legal from "@/pages/Legal";
 import Auth from "@/pages/Auth";
 import Wishlist from "@/pages/Wishlist";
 import Admin from "@/pages/Admin";
+import Kits from "@/pages/Kits";
 import NotFound from "@/pages/NotFound";
 
 function App() {
@@ -45,8 +46,8 @@ function App() {
                             <Route path="legal/:doc" element={<Legal />} />
                             <Route path="auth" element={<Auth />} />
                             <Route path="wishlist" element={<Wishlist />} />
-                            <Route path="admin" element={<Admin />} />
                             <Route path="adore-admin" element={<Admin />} />
+                            <Route path="kits" element={<Kits />} />
                             <Route path="*" element={<NotFound />} />
                         </Route>
                     </Routes>

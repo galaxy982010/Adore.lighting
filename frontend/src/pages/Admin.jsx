@@ -128,14 +128,14 @@ export default function Admin() {
             <h1 className="font-serif text-5xl mb-10">Admin</h1>
 
             <div className="flex gap-8 border-b border-[#E5E3DC] mb-10">
-                {["products", "orders", "inquiries"].map((t) => (
+                {["products", "orders", "inquiries", "coupons"].map((t) => (
                     <button
                         key={t}
                         data-testid={`admin-tab-${t}`}
                         onClick={() => setTab(t)}
-                        className={`pb-3 tracking-editorial ${tab === t ? "text-amber2 border-b-2 border-amber2 -mb-px" : "text-muted2 hover:text-charcoal"}`}
+                        className={`pb-3 tracking-editorial capitalize ${tab === t ? "text-amber2 border-b-2 border-amber2 -mb-px" : "text-muted2 hover:text-charcoal"}`}
                     >
-                        {t} · {t === "products" ? products.length : t === "orders" ? orders.length : inquiries.length}
+                        {t} · {t === "products" ? products.length : t === "orders" ? orders.length : t === "inquiries" ? inquiries.length : coupons.length}
                     </button>
                 ))}
             </div>

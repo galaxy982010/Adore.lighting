@@ -75,22 +75,6 @@ export default function Contact() {
                             <a href={BRAND.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="w-11 h-11 border border-charcoal/20 flex items-center justify-center hover:bg-charcoal hover:text-ivory hover:border-charcoal transition-colors"><Linkedin size={16} /></a>
                         </div>
                     </div>
-
-                    {/* Google Maps */}
-                    <div>
-                        <div className="tracking-editorial text-muted2 mb-4">Find us</div>
-                        <div className="aspect-[16/10] bg-ivory-2 overflow-hidden">
-                            <iframe
-                                title="Adore Studio Location"
-                                src="https://maps.google.com/maps?q=New+Delhi&t=&z=11&ie=UTF8&iwloc=&output=embed"
-                                width="100%"
-                                height="100%"
-                                loading="lazy"
-                                referrerPolicy="no-referrer-when-downgrade"
-                                style={{ border: 0 }}
-                            />
-                        </div>
-                    </div>
                 </div>
 
                 {/* Contact form */}
