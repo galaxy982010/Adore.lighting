@@ -565,6 +565,8 @@ async def newsletter(data: NewsletterSignup):
 
 @api_router.post("/inquiry")
 async def inquiry(data: InquiryForm):
+    if data.inquiry_type == "kit-quote" and not data.phone.strip():
+        raise HTTPException(status_code=422, detail="Phone is required for a kit quote")
     doc = data.model_dump()
     doc["id"] = str(uuid.uuid4())
     doc["created_at"] = now_iso()
