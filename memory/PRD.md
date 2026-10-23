@@ -51,3 +51,4 @@ Build a premium, high-end ecommerce website for **Adore**, a luxury decorative l
 ## Update (Jun 2026)
 - GitHub push: to be done by user via the "Save to GitHub" button in chat (repo: galaxy982010/Adore.lighting).
 - Razorpay: not added; Shopify checkout remains the only payment flow (default choice). Razorpay can be enabled inside Shopify Payments settings if needed.
+- WhatsApp button (Jun 2026): floating button on every page opens chat with +91 81788 67115, pre-filled "Hi", hover label "Ask us about a light" (components/WhatsAppWidget.jsx).
