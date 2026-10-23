@@ -45,12 +45,12 @@ const HERO_SLIDES = [
 ];
 
 const IG_GRID = [
-    "https://images.unsplash.com/photo-1586450428662-92fe683549b9?w=800&q=85",
-    "https://images.unsplash.com/photo-1704040686413-2c607dbd2f06?w=800&q=85",
-    "https://images.unsplash.com/photo-1706820229870-f9a8c6dac193?w=800&q=85",
-    "https://images.unsplash.com/photo-1648415198825-7c805bfa043e?w=800&q=85",
-    "https://images.unsplash.com/photo-1775660922989-f0c624413269?w=800&q=85",
-    "https://images.unsplash.com/photo-1764760764956-fcb78be107a5?w=800&q=85",
+    "/collections/page11.jpg",
+    "/collections/page8.jpg",
+    "/collections/page6.jpg",
+    "/collections/page10.jpg",
+    "/collections/page1.jpg",
+    "/collections/page2.jpg",
 ];
 
 export default function Home() {
@@ -96,11 +96,11 @@ export default function Home() {
             {/* HERO CAROUSEL */}
             <section className="relative h-[92vh] min-h-[640px] w-full overflow-hidden bg-charcoal">
                 {HERO_SLIDES.map((s, i) => (
-                    <div key={i} className={`absolute inset-0 transition-opacity duration-[1400ms] ease-out ${slide === i ? "opacity-100" : "opacity-0"}`}>
+                    <div key={i} className={`absolute inset-0 transition-opacity duration-1400 ease-out ${slide === i ? "opacity-100" : "opacity-0"}`}>
                         <img
                             src={s.image}
                             alt={s.title}
-                            className={`w-full h-full object-cover ${slide === i ? "scale-105" : "scale-100"} transition-transform duration-[6000ms] ease-out`}
+                            className={`w-full h-full object-cover ${slide === i ? "scale-105" : "scale-100"} transition-transform duration-6000 ease-out`}
                         />
                         <div className="absolute inset-0 bg-gradient-to-b from-charcoal/60 via-charcoal/25 to-charcoal/85" />
                     </div>
@@ -191,7 +191,7 @@ export default function Home() {
 
             {/* FESTIVE BANNER */}
             <section className="relative overflow-hidden bg-charcoal text-ivory">
-                <img src="https://images.unsplash.com/photo-1586450428662-92fe683549b9?w=2000&q=85" alt="" className="absolute inset-0 w-full h-full object-cover opacity-35" />
+                <img src="/hero/slide3.jpg" alt="" className="absolute inset-0 w-full h-full object-cover opacity-35" />
                 <div className="absolute inset-0 bg-gradient-to-r from-charcoal/80 via-charcoal/50 to-transparent" />
                 <div className="relative max-w-[1400px] mx-auto px-6 md:px-10 py-24 md:py-32">
                     <Reveal className="max-w-xl">
@@ -209,7 +209,7 @@ export default function Home() {
             <section className="bg-ivory-2 py-24 md:py-32">
                 <div className="max-w-[1400px] mx-auto px-6 md:px-10 grid md:grid-cols-2 gap-16 items-center">
                     <Reveal className="aspect-[4/5] overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1706820229870-f9a8c6dac193?w=1400&q=90" alt="Craftsmanship at Adore" className="w-full h-full object-cover" />
+                        <img src="/hero/slide1.jpg" alt="Craftsmanship at Adore" className="w-full h-full object-cover" />
                     </Reveal>
                     <Reveal delay={120}>
                         <div className="tracking-editorial text-amber2 mb-6">Our Ethos</div>
@@ -256,9 +256,9 @@ export default function Home() {
                     </Reveal>
                     <div className="grid md:grid-cols-3 gap-6 md:gap-8 mt-14">
                         {[
-                            { title: "The Living Room Kit", tag: "Chandelier · wall · table · floor · pendants", image: "/hero/slide1.jpg" },
-                            { title: "The Dining Kit", tag: "Chandelier · sconces · candle pendants", image: "/hero/slide2.jpg" },
-                            { title: "The Bedroom Kit", tag: "Ambient · bedside · reading light", image: "/hero/slide3.jpg" },
+                            { title: "The Living Room Kit", tag: "Chandelier · wall · table · floor · pendants", image: "/kits/living-room.jpg" },
+                            { title: "The Dining Kit", tag: "Chandelier · sconces · candle pendants", image: "/kits/dining.jpg" },
+                            { title: "The Bedroom Kit", tag: "Ambient · bedside · reading light", image: "/kits/bedroom.jpg" },
                         ].map((k, i) => (
                             <Reveal key={k.title} delay={i * 100}>
                                 <Link to="/kits" data-testid={`bundle-${i}`} className="group block">

@@ -4,7 +4,7 @@ export default function About() {
     return (
         <div>
             <section className="relative h-[60vh] min-h-[420px] bg-charcoal">
-                <img src="https://images.unsplash.com/photo-1706820229870-f9a8c6dac193?w=2000&q=85" alt="" className="absolute inset-0 w-full h-full object-cover opacity-70" />
+                <img src="/hero/slide4.jpg" alt="" className="absolute inset-0 w-full h-full object-cover opacity-70" />
                 <div className="absolute inset-0 bg-gradient-to-b from-charcoal/40 to-charcoal/70" />
                 <div className="relative h-full max-w-[1400px] mx-auto px-6 md:px-10 flex flex-col justify-end pb-16 text-ivory">
                     <div className="tracking-editorial text-ivory/70 mb-4">About Adore</div>

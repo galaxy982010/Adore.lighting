@@ -13,9 +13,36 @@ import RecentlyViewed from "@/components/RecentlyViewed";
 import { pushRecent } from "@/lib/recent";
 
 const REVIEWS = [
-    { name: "Ananya S.", city: "Mumbai", rating: 5, title: "Elevated the entire foyer", body: "The scale and finish is exactly as photographed. The installation team was punctual and precise. Worth every rupee.", verified: true, photo: "https://images.unsplash.com/photo-1706820229870-f9a8c6dac193?w=400&q=85" },
+    { name: "Ananya S.", city: "Mumbai", rating: 5, title: "Elevated the entire foyer", body: "The scale and finish is exactly as photographed. The installation team was punctual and precise. Worth every rupee.", verified: true, photo: "/collections/page11.jpg" },
     { name: "Rohan M.", city: "Bengaluru", rating: 5, title: "Best-in-class craft", body: "Compared with three other studios before ordering — no one else's finish came close. The brass ages beautifully.", verified: true },
-    { name: "Priya K.", city: "Delhi", rating: 4, title: "Beautiful, patient studio", body: "They took extra time to match the finish to my existing hardware. Slightly delayed but flawless once here.", verified: true, photo: "https://images.unsplash.com/photo-1648415198825-7c805bfa043e?w=400&q=85" },
+    { name: "Priya K.", city: "Delhi", rating: 4, title: "Beautiful, patient studio", body: "They took extra time to match the finish to my existing hardware. Slightly delayed but flawless once here.", verified: true, photo: "/collections/page8.jpg" },
+];
+
+const TEMPS = [
+    {
+        id: "2700k",
+        name: "Warm Amber",
+        label: "2700K Warm",
+        kelvin: "2700K",
+        overlay: "bg-amber-600/20",
+        hint: "Intimate golden illumination — ideal for dining, bedrooms, and relaxing evenings.",
+    },
+    {
+        id: "3000k",
+        name: "Soft White",
+        label: "3000K Soft",
+        kelvin: "3000K",
+        overlay: "bg-amber-300/10",
+        hint: "Balanced warm interior light — the architectural standard for luxury Indian homes.",
+    },
+    {
+        id: "4000k",
+        name: "Crisp Neutral",
+        label: "4000K Crisp",
+        kelvin: "4000K",
+        overlay: "bg-sky-200/10",
+        hint: "True-colour modern clarity — ideal for double-height foyers and open-concept spaces.",
+    },
 ];
 
 export default function Product() {
@@ -28,13 +55,17 @@ export default function Product() {
     const [variantId, setVariantId] = useState(null);
     const [qty, setQty] = useState(1);
     const [zoomed, setZoomed] = useState(false);
+    const [temp, setTemp] = useState("3000k");
     const { addItem, loading: cartLoading } = useCart();
-    const { user } = useAuth();
-    const { setWaProduct } = useOutletContext();
+    const outlet = useOutletContext() || {};
+    const setWaProduct = outlet.setWaProduct;
+    const colorTemp = TEMPS.find((t) => t.id === temp) || TEMPS[1];
 
     useEffect(() => {
-        setWaProduct(product?.name || null);
-        return () => setWaProduct(null);
+        if (typeof setWaProduct === "function") {
+            setWaProduct(product?.name || null);
+            return () => setWaProduct(null);
+        }
     }, [product, setWaProduct]);
 
     useEffect(() => {
@@ -65,8 +96,8 @@ export default function Product() {
     }
     if (!product) return <div className="py-40 text-center text-muted2">Loading…</div>;
 
-    const activeVariant = product.variants.find((v) => v.id === variantId) || product.variants[0];
-    const currentPrice = activeVariant?.price || product.price;
+    const activeVariant = product.variants?.find((v) => v.id === variantId) || product.variants?.[0];
+    const currentPrice = activeVariant?.price ?? product.price ?? 0;
 
     const add = async () => {
         if (!variantId) { toast.error("Please select an option"); return; }
@@ -80,7 +111,7 @@ export default function Product() {
     };
 
     const avg = (REVIEWS.reduce((s, r) => s + r.rating, 0) / REVIEWS.length).toFixed(1);
-    const hasMultipleVariants = product.variants.length > 1;
+    const hasMultipleVariants = (product.variants?.length || 0) > 1;
 
     return (
         <div>
@@ -90,12 +121,18 @@ export default function Product() {
 
             <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-8 pb-24 grid lg:grid-cols-[1.15fr_1fr] gap-12 lg:gap-20">
                 <div>
-                    <div className={`aspect-[4/5] bg-ivory-2 overflow-hidden ${zoomed ? "cursor-zoom-out" : "cursor-zoom-in"}`} onClick={() => setZoomed(!zoomed)}>
+                    <div className={`aspect-[4/5] bg-ivory-2 overflow-hidden relative ${zoomed ? "cursor-zoom-out" : "cursor-zoom-in"}`} onClick={() => setZoomed(!zoomed)}>
                         {product.images[activeImg] ? (
-                            <img src={product.images[activeImg]} alt={product.name} className={`w-full h-full object-cover transition-transform duration-700 ${zoomed ? "scale-150" : "scale-100 hover:scale-105"}`} />
+                            <>
+                                <img src={product.images[activeImg]} alt={product.name} className={`w-full h-full object-cover transition-transform duration-700 ${zoomed ? "scale-150" : "scale-100 hover:scale-105"}`} />
+                                <div className={`absolute inset-0 pointer-events-none transition-all duration-700 mix-blend-color ${colorTemp.overlay}`} />
+                            </>
                         ) : (
                             <div className="w-full h-full flex items-center justify-center text-muted2 text-sm">No image</div>
                         )}
+                        <div className="absolute top-4 right-4 bg-charcoal/80 backdrop-blur-md text-ivory text-[10px] tracking-editorial px-2.5 py-1 pointer-events-none">
+                            {colorTemp.kelvin} · {colorTemp.name}
+                        </div>
                     </div>
                     {product.images.length > 1 && (
                         <div className="mt-4 grid grid-cols-4 gap-3">
@@ -106,6 +143,37 @@ export default function Product() {
                             ))}
                         </div>
                     )}
+
+                    {/* Light Temperature Visualizer */}
+                    <div className="mt-6 p-4 bg-ivory-2 border border-[#E5E3DC]">
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs tracking-editorial text-charcoal flex items-center gap-1.5 font-medium">
+                                <Sparkles size={13} className="text-amber2" /> Ambiance & Colour Temp
+                            </span>
+                            <span className="text-[11px] text-muted2 font-mono">{colorTemp.kelvin}</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 mt-2">
+                            {TEMPS.map((t) => (
+                                <button
+                                    key={t.id}
+                                    type="button"
+                                    data-testid={`temp-toggle-${t.id}`}
+                                    onClick={() => setTemp(t.id)}
+                                    className={`py-2 px-2 text-xs text-center border transition-all ${
+                                        temp === t.id
+                                            ? "bg-charcoal text-ivory border-charcoal shadow-sm"
+                                            : "border-charcoal/20 bg-ivory hover:border-amber2 text-charcoal/80"
+                                    }`}
+                                >
+                                    <div className="font-medium text-[11px]">{t.label}</div>
+                                    <div className="text-[9px] opacity-70 mt-0.5">{t.name}</div>
+                                </button>
+                            ))}
+                        </div>
+                        <div className="text-[11px] text-charcoal/70 mt-2.5 leading-snug">
+                            {colorTemp.hint}
+                        </div>
+                    </div>
                 </div>
 
                 <div className="lg:sticky lg:top-32 self-start">

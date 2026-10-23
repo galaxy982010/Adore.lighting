@@ -13,10 +13,10 @@ export const CartProvider = ({ children }) => {
     // Restore cart from localStorage
     useEffect(() => {
         const id = localStorage.getItem(CART_ID_KEY);
-        if (!id || !Shopify.isShopifyConfigured()) return;
+        if (!id) return;
         Shopify.getCart(id)
             .then((c) => {
-                if (c && c.lines.length >= 0) setCart(c);
+                if (c && c.lines?.length >= 0) setCart(c);
                 else localStorage.removeItem(CART_ID_KEY);
             })
             .catch(() => {

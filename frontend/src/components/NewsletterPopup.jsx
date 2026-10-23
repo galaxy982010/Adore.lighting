@@ -84,7 +84,7 @@ export default function ProductTeaserPopup() {
                     <div className="flex-1 py-4 pr-8 min-w-0">
                         <div className="tracking-editorial text-amber2 mb-1 text-[9px]">Featured Piece</div>
                         <div className="font-serif text-lg leading-tight truncate">{current.name}</div>
-                        <div className="text-xs text-muted2 mt-1 capitalize">{current.category.replace(/-/g, " ")}</div>
+                        <div className="text-xs text-muted2 mt-1 capitalize">{(current.category || "").replace(/-/g, " ")}</div>
                         <div className="mt-2 text-sm font-medium">{formatINR(current.price)}</div>
                     </div>
                 </div>

@@ -59,16 +59,17 @@ export default function Nav() {
                     {announcement}
                 </div>
 
-                <div className="grid grid-cols-[auto_1fr_auto] items-center h-20 gap-4">
-                    <button
-                        data-testid="nav-menu-toggle"
-                        onClick={() => setOpen(!open)}
-                        className="md:hidden p-2 -ml-2 justify-self-start"
-                        aria-label="Menu"
-                    >
-                        {open ? <X size={22} /> : <Menu size={22} />}
-                    </button>
-                    <div className="hidden md:block" />
+                <div className="grid grid-cols-3 items-center h-20">
+                    <div className="flex items-center justify-self-start">
+                        <button
+                            data-testid="nav-menu-toggle"
+                            onClick={() => setOpen(!open)}
+                            className="md:hidden p-2 -ml-2"
+                            aria-label="Menu"
+                        >
+                            {open ? <X size={22} /> : <Menu size={22} />}
+                        </button>
+                    </div>
 
                     <Link to="/" data-testid="nav-logo" className="justify-self-center flex items-baseline gap-2 leading-none">
                         <span className="font-serif text-3xl md:text-4xl tracking-tight">Adore</span>
@@ -120,10 +121,6 @@ export default function Nav() {
                 <div className="md:hidden border-t border-[#E5E3DC] bg-ivory">
                     <nav className="px-6 py-4 flex flex-col gap-2">
                         <Link to="/" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Home</Link>
-                        <Link to="/about" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Our Story</Link>
-                        <Link to="/kits" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Lighting Kits</Link>
-                        <Link to="/inspiration" data-testid="nav-inspiration" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Room Inspiration</Link>
-                        <Link to="/bespoke" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Bespoke</Link>
                         <Link to="/track" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Track Order</Link>
                         <Link to="/contact" onClick={() => setOpen(false)} className="py-3 text-sm">Contact</Link>
                     </nav>

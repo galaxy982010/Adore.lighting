@@ -19,7 +19,8 @@ export default function KitQuoteDialog({ kit, onClose }) {
         e.preventDefault();
         setSending(true);
         try {
-            await api.post("/inquiry", { ...form, kit: kit.title, inquiry_type: "kit-quote", message: form.message || `Quote request for ${kit.title}` });
+            const kitTitle = kit?.title || "Lighting Kit";
+            await api.post("/inquiry", { ...form, kit: kitTitle, inquiry_type: "kit-quote", message: form.message || `Quote request for ${kitTitle}` });
             toast.success("Thank you — our studio will reach out with a quote shortly.");
             setForm(EMPTY);
             onClose();

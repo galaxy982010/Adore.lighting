@@ -47,8 +47,8 @@ export const CATEGORIES = [
     { slug: "outdoor", name: "Outdoor", image: IMG(7),
       subs: [{ slug: "gate-lights", name: "Gate Lights" }, { slug: "wall-lamps", name: "Wall Lamps" }] },
     { slug: "bamboo", name: "Bamboo", image: IMG(2) },
-    { slug: "kids-lights", name: "Kids Lights", image: IMG(4) },
-    { slug: "mirror-lights", name: "Mirror Lights", image: IMG(10) },
+    { slug: "kids-lights", name: "Kids Lights", image: "/collections/kids-lights.png" },
+    { slug: "mirror-lights", name: "Mirror Lights", image: "/collections/mirror-lights.jpg" },
     { slug: "bulbs", name: "Bulbs", image: IMG(5),
       subs: [
         { slug: "e27-4w-filament", name: "E27 · 4W Filament" },
@@ -74,5 +74,8 @@ export const ROOMS = [
     { slug: "staircase", label: "Staircase", name: "Duplex & Staircase" },
 ];
 
-export const formatINR = (n) =>
-    new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+export const formatINR = (n) => {
+    const val = Number(n);
+    const num = isNaN(val) ? 0 : val;
+    return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(num);
+};

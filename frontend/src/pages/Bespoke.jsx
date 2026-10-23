@@ -34,7 +34,7 @@ export function InquiryPage({ title, eyebrow, heading, blurb, inquiryType }) {
                 <h1 className="font-serif text-5xl md:text-6xl leading-tight">{title}</h1>
                 <p className="mt-8 text-charcoal/75 leading-relaxed max-w-lg">{blurb}</p>
                 <div className="mt-12 aspect-[4/5] overflow-hidden">
-                    <img src="https://images.unsplash.com/photo-1706820229870-f9a8c6dac193?w=1400&q=85" alt="" className="w-full h-full object-cover" />
+                    <img src="/hero/slide2.jpg" alt="" className="w-full h-full object-cover" />
                 </div>
             </div>
 

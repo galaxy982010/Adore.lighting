@@ -10,7 +10,7 @@ const KITS = [
         slug: "living-room",
         title: "Living Room Kit",
         blurb: "A layered composition for the room that hosts everyone. Feature light overhead, warm accents at eye-level, ambient glow at the corners.",
-        image: "/hero/slide1.jpg",
+        image: "/kits/living-room.jpg",
         items: [
             { name: "Chandelier", to: "/shop/chandeliers" },
             { name: "Wall Lamp", to: "/shop/wall" },
@@ -24,7 +24,7 @@ const KITS = [
         slug: "dining",
         title: "Dining Kit",
         blurb: "A dining room should feel like an occasion. Pair a statement chandelier with softer accents that carry the mood off the table.",
-        image: "/hero/slide2.jpg",
+        image: "/kits/dining.jpg",
         items: [
             { name: "Chandelier", to: "/shop/chandeliers" },
             { name: "Wall Lamp", to: "/shop/wall" },
@@ -38,7 +38,7 @@ const KITS = [
         slug: "bedroom",
         title: "Bedroom Kit",
         blurb: "The bedroom is a room of layers — a soft central light, a bedside glow to read by, and a warm corner for winding down.",
-        image: "/hero/slide3.jpg",
+        image: "/kits/bedroom.jpg",
         items: [
             { name: "Chandelier", to: "/shop/chandeliers" },
             { name: "Wall Lamp", to: "/shop/wall" },

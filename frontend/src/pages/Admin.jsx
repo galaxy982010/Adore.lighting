@@ -35,16 +35,20 @@ export default function Admin() {
     }, [user, loading]);
 
     const loadAll = async () => {
-        const [pr, or, iq, cp] = await Promise.all([
-            api.get("/products"),
-            api.get("/orders"),
-            api.get("/inquiries"),
-            api.get("/coupons"),
-        ]);
-        setProducts(pr.data);
-        setOrders(or.data);
-        setInquiries(iq.data);
-        setCoupons(cp.data);
+        try {
+            const [pr, or, iq, cp] = await Promise.all([
+                api.get("/products"),
+                api.get("/orders"),
+                api.get("/inquiries"),
+                api.get("/coupons"),
+            ]);
+            setProducts(pr.data || []);
+            setOrders(or.data || []);
+            setInquiries(iq.data || []);
+            setCoupons(cp.data || []);
+        } catch (err) {
+            console.error("Admin data load error:", err);
+        }
     };
 
     const createCoupon = async (e) => {

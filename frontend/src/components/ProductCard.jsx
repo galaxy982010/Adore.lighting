@@ -10,14 +10,18 @@ export default function ProductCard({ product }) {
             data-testid={`product-card-${product.slug}`}
             className="group block"
         >
-            <div className="relative aspect-[4/5] overflow-hidden bg-ivory-2 image-zoom">
-                <img
-                    src={img1}
-                    alt={product.name}
-                    loading="lazy"
-                    className="w-full h-full object-cover"
-                />
-                {img2 && (
+            <div className="relative aspect-[4/5] overflow-hidden bg-ivory-2 image-zoom flex items-center justify-center">
+                {img1 ? (
+                    <img
+                        src={img1}
+                        alt={product.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                    />
+                ) : (
+                    <div className="text-muted2 text-xs tracking-editorial">Adore Lighting</div>
+                )}
+                {img2 && img2 !== img1 && (
                     <img
                         src={img2}
                         alt=""
@@ -30,7 +34,7 @@ export default function ProductCard({ product }) {
                 )}
             </div>
             <div className="pt-5">
-                <div className="text-[10px] tracking-editorial text-muted2 mb-1">{product.category}</div>
+                <div className="text-[10px] tracking-editorial text-muted2 mb-1 capitalize">{(product.category || "").replace(/-/g, " ")}</div>
                 <div className="font-serif text-xl leading-snug">{product.name}</div>
                 <div className="mt-1 text-sm text-charcoal/80">{formatINR(product.price)}</div>
             </div>

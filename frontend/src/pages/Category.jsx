@@ -19,7 +19,7 @@ export default function Category() {
     const catEntry = CATEGORIES.find((c) => c.slug === category);
     const roomEntry = isRoom ? ROOMS.find((r) => r.slug === room?.toLowerCase()) : null;
     const meta = isRoom
-        ? { name: roomEntry?.name || room, tag: "Shop by Room", blurb: `Considered lighting for the ${(roomEntry?.name || room).toLowerCase()} — layered and warm.` }
+        ? { name: roomEntry?.name || room || "Room", tag: "Shop by Room", blurb: `Considered lighting for the ${(roomEntry?.name || room || "room").toLowerCase()} — layered and warm.` }
         : { name: catEntry?.name || category, tag: "Collection", blurb: catEntry?.description };
 
     useEffect(() => {

@@ -11,6 +11,11 @@ module.exports = {
                 serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
                 sans: ['"Outfit"', 'system-ui', 'sans-serif'],
             },
+            transitionDuration: {
+                '1200': '1200ms',
+                '1400': '1400ms',
+                '6000': '6000ms',
+            },
             colors: {
                 ivory: '#F9F8F6',
                 'ivory-2': '#F3F1ED',
