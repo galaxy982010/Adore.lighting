@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, useOutletContext } from "react-router-dom";
 import { toast } from "sonner";
 import { Heart, ShoppingBag, Truck, Sparkles, RotateCcw, Star, Lock } from "lucide-react";
 import { formatINR } from "@/lib/api";
@@ -28,6 +28,12 @@ export default function Product() {
     const [zoomed, setZoomed] = useState(false);
     const { addItem, loading: cartLoading } = useCart();
     const { user } = useAuth();
+    const { setWaProduct } = useOutletContext();
+
+    useEffect(() => {
+        setWaProduct(product?.name || null);
+        return () => setWaProduct(null);
+    }, [product, setWaProduct]);
 
     useEffect(() => {
         setNotFound(false);

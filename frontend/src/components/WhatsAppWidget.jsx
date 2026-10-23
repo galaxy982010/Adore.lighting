@@ -1,11 +1,12 @@
 import { BRAND } from "@/lib/api";
 
-export default function WhatsAppWidget() {
+export default function WhatsAppWidget({ productName }) {
     const num = BRAND.whatsapp.replace(/\D/g, "");
+    const text = productName ? `Hi, I'm interested in ${productName}` : "Hi";
     return (
         <a
             data-testid="whatsapp-widget"
-            href={`https://wa.me/${num}?text=${encodeURIComponent("Hi")}`}
+            href={`https://wa.me/${num}?text=${encodeURIComponent(text)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="group fixed bottom-6 right-6 z-40 w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(0,0,0,0.15)] hover:scale-105 transition-transform"
