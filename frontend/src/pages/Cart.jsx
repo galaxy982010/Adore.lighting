@@ -5,16 +5,10 @@ import { useCart } from "@/context/CartContext";
 import { formatINR } from "@/lib/api";
 
 export default function Cart() {
-    const { items, removeItem, updateQty, total, checkoutUrl, loading } = useCart();
+    const { items, removeItem, updateQty, total, checkoutUrl, loading, redirectToCheckout } = useCart();
 
     const handleCheckout = () => {
-        console.log("Shopify checkoutUrl:", checkoutUrl);
-        if (!checkoutUrl) {
-            console.error("Shopify checkoutUrl missing", { itemCount: items.length });
-            toast.error("Preparing checkout — please try again in a moment.");
-            return;
-        }
-        window.location.href = checkoutUrl;
+        redirectToCheckout();
     };
 
     if (items.length === 0) {

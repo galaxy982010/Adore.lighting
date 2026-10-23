@@ -47,3 +47,7 @@ Build a premium, high-end ecommerce website for **Adore**, a luxury decorative l
 - 3D room-preview / AR try-on for chandeliers
 - Interior-designer quote-builder (multi-product PDF)
 - Order → CRM webhook for the studio team
+
+## Update (Jun 2026)
+- GitHub push: to be done by user via the "Save to GitHub" button in chat (repo: galaxy982010/Adore.lighting).
+- Razorpay: not added; Shopify checkout remains the only payment flow (default choice). Razorpay can be enabled inside Shopify Payments settings if needed.

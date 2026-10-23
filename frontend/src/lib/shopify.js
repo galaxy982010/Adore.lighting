@@ -165,11 +165,29 @@ export async function getProductByHandle(handle) {
 }
 
 // ---- Cart normalization ----
+// The store's primary domain (adore.lighting) is served by this app.
+// Shopify's checkoutUrl uses that primary domain, which would collide with
+// our SPA and 404. Force the host back to the *.myshopify.com origin so
+// the redirect always lands on Shopify's servers.
+function forceShopifyHost(url) {
+    if (!url || !DOMAIN) return url;
+    try {
+        const u = new URL(url);
+        if (!u.hostname.endsWith(".myshopify.com")) {
+            u.hostname = DOMAIN;
+            u.protocol = "https:";
+        }
+        return u.toString();
+    } catch {
+        return url;
+    }
+}
+
 export function normalizeCart(cart) {
     if (!cart) return null;
     return {
         id: cart.id,
-        checkoutUrl: cart.checkoutUrl,
+        checkoutUrl: forceShopifyHost(cart.checkoutUrl),
         totalQuantity: cart.totalQuantity || 0,
         subtotal: Math.round(Number(cart.cost?.subtotalAmount?.amount || 0)),
         total: Math.round(Number(cart.cost?.totalAmount?.amount || 0)),

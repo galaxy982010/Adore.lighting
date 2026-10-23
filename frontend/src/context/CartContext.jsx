@@ -80,6 +80,19 @@ export const CartProvider = ({ children }) => {
         setCart(null);
     };
 
+    // Centralised redirect to Shopify's hosted checkout. Uses the URL that
+    // Shopify's cartCreate returned — never a relative or internal route.
+    const redirectToCheckout = () => {
+        const url = cart?.checkoutUrl;
+        console.log("Shopify checkoutUrl:", url);
+        if (!url) {
+            console.error("Shopify checkoutUrl missing", { cartId: cart?.id, lineCount: cart?.lines?.length });
+            toast.error("Preparing checkout — please try again in a moment.");
+            return;
+        }
+        window.location.href = url;
+    };
+
     const items = cart?.lines || [];
     const count = cart?.totalQuantity || 0;
     const total = cart?.subtotal || 0;
@@ -97,6 +110,7 @@ export const CartProvider = ({ children }) => {
                 updateQty,
                 removeItem,
                 clear,
+                redirectToCheckout,
                 loading,
             }}
         >
