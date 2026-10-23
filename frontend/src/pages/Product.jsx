@@ -9,6 +9,8 @@ import { addToWishlist } from "@/pages/Wishlist";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import ProductCard from "@/components/ProductCard";
+import RecentlyViewed from "@/components/RecentlyViewed";
+import { pushRecent } from "@/lib/recent";
 
 const REVIEWS = [
     { name: "Ananya S.", city: "Mumbai", rating: 5, title: "Elevated the entire foyer", body: "The scale and finish is exactly as photographed. The installation team was punctual and precise. Worth every rupee.", verified: true, photo: "https://images.unsplash.com/photo-1706820229870-f9a8c6dac193?w=400&q=85" },
@@ -42,6 +44,7 @@ export default function Product() {
             .then((p) => {
                 if (!p) { setNotFound(true); return; }
                 setProduct(p);
+                pushRecent(p);
                 setActiveImg(0);
                 setVariantId(p.variants?.[0]?.id || p.firstVariantId || null);
                 Shopify.listProducts({ first: 100 })
@@ -245,6 +248,7 @@ export default function Product() {
                     </div>
                 </section>
             )}
+            <RecentlyViewed excludeSlug={product.slug} />
         </div>
     );
 }

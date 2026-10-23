@@ -20,6 +20,7 @@ import Auth from "@/pages/Auth";
 import Wishlist from "@/pages/Wishlist";
 import Admin from "@/pages/Admin";
 import Kits from "@/pages/Kits";
+import Inspiration from "@/pages/Inspiration";
 import NotFound from "@/pages/NotFound";
 
 function App() {
@@ -48,6 +49,7 @@ function App() {
                             <Route path="wishlist" element={<Wishlist />} />
                             <Route path="adore-admin" element={<Admin />} />
                             <Route path="kits" element={<Kits />} />
+                            <Route path="inspiration" element={<Inspiration />} />
                             <Route path="*" element={<NotFound />} />
                         </Route>
                     </Routes>

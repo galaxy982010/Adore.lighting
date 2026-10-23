@@ -234,6 +234,9 @@ export default function Admin() {
                                 <div><span className="font-serif text-lg">{q.name}</span> <span className="text-xs text-muted2 ml-2">· {q.email}</span></div>
                                 <span className="tracking-editorial text-amber2 text-xs">{q.inquiry_type}</span>
                             </div>
+                            {(q.kit || q.phone || q.city) && (
+                                <div className="text-xs text-muted2 mb-1">{[q.kit && `Kit: ${q.kit}`, q.phone, q.city].filter(Boolean).join(" · ")}</div>
+                            )}
                             <p className="text-sm text-charcoal/80">{q.message}</p>
                         </div>
                     ))}

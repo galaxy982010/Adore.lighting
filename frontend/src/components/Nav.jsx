@@ -122,6 +122,7 @@ export default function Nav() {
                         <Link to="/" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Home</Link>
                         <Link to="/about" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Our Story</Link>
                         <Link to="/kits" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Lighting Kits</Link>
+                        <Link to="/inspiration" data-testid="nav-inspiration" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Room Inspiration</Link>
                         <Link to="/bespoke" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Bespoke</Link>
                         <Link to="/track" onClick={() => setOpen(false)} className="py-3 border-b border-[#E5E3DC]/60 text-sm">Track Order</Link>
                         <Link to="/contact" onClick={() => setOpen(false)} className="py-3 text-sm">Contact</Link>

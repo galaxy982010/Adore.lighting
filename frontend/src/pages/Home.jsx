@@ -6,6 +6,8 @@ import * as Shopify from "@/lib/shopify";
 import CategoryTile from "@/components/CategoryTile";
 import ProductCard from "@/components/ProductCard";
 import Reveal from "@/components/Reveal";
+import InspirationSection from "@/components/InspirationSection";
+import RecentlyViewed from "@/components/RecentlyViewed";
 
 const HERO_SLIDES = [
     {
@@ -293,6 +295,9 @@ export default function Home() {
                     </div>
                 </div>
             </section>
+
+            <InspirationSection />
+            <RecentlyViewed />
 
             {/* INSTAGRAM */}
             <section className="border-t border-[#E5E3DC] py-24">

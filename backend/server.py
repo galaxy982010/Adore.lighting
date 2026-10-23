@@ -182,6 +182,8 @@ class InquiryForm(BaseModel):
     phone: str = ""
     message: str
     inquiry_type: str = "contact"
+    city: str = ""
+    kit: str = ""
 
 
 class Coupon(BaseModel):

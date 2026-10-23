@@ -1,5 +1,7 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useOutletContext } from "react-router-dom";
 import { Sparkles } from "lucide-react";
+import KitQuoteDialog from "@/components/KitQuoteDialog";
 
 // Lighting kits are curated *suggestions* — inspiration, not fixed packages.
 // No prices anywhere on this page.
@@ -49,8 +51,21 @@ const KITS = [
 ];
 
 export default function Kits() {
+    const { setWaProduct } = useOutletContext();
+    const [quoteKit, setQuoteKit] = useState(null);
+
+    useEffect(() => {
+        const obs = new IntersectionObserver(
+            (entries) => entries.forEach((e) => e.isIntersecting && setWaProduct(e.target.dataset.kitTitle)),
+            { rootMargin: "-45% 0px -45% 0px" }
+        );
+        document.querySelectorAll("[data-kit-title]").forEach((el) => obs.observe(el));
+        return () => { obs.disconnect(); setWaProduct(null); };
+    }, [setWaProduct]);
+
     return (
         <div>
+            <KitQuoteDialog kit={quoteKit} onClose={() => setQuoteKit(null)} />
             <section className="max-w-[1400px] mx-auto px-6 md:px-10 pt-16 pb-8">
                 <div className="tracking-editorial text-muted2 mb-4">Lighting Kits</div>
                 <h1 className="font-serif text-5xl md:text-6xl">Curated Suggestions, One Room at a Time.</h1>
@@ -60,7 +75,7 @@ export default function Kits() {
             </section>
 
             {KITS.map((kit, idx) => (
-                <section key={kit.slug} data-testid={`kit-${kit.slug}`} className={`py-24 ${idx % 2 === 0 ? "bg-ivory-2" : "bg-ivory"}`}>
+                <section key={kit.slug} data-testid={`kit-${kit.slug}`} data-kit-title={kit.title} className={`py-24 ${idx % 2 === 0 ? "bg-ivory-2" : "bg-ivory"}`}>
                     <div className="max-w-[1400px] mx-auto px-6 md:px-10 grid md:grid-cols-2 gap-14 items-center">
                         <div className={`aspect-[4/5] overflow-hidden ${idx % 2 === 1 ? "md:order-2" : ""}`}>
                             <img src={kit.image} alt={kit.title} className="w-full h-full object-cover" loading="lazy" />
@@ -83,7 +98,15 @@ export default function Kits() {
                                     </li>
                                 ))}
                             </ul>
-                            <p className="mt-10 text-xs text-muted2 italic">
+                            <button
+                                type="button"
+                                data-testid={`kit-${kit.slug}-quote-button`}
+                                onClick={() => setQuoteKit(kit)}
+                                className="mt-10 inline-flex items-center gap-3 bg-charcoal text-ivory px-8 py-4 tracking-editorial text-xs hover:bg-amber2 transition-colors"
+                            >
+                                Request a quote
+                            </button>
+                            <p className="mt-6 text-xs text-muted2 italic">
                                 A composition — not a package. Explore each layer and choose from the Adore catalogue.
                             </p>
                         </div>
