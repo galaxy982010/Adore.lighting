@@ -1,0 +1,25 @@
+{
+  "summary": "Frontend-only verification of the Adore master update via Playwright on the public preview URL. All 13 requested items verified. HIGH-priority checkout fix CONFIRMED WORKING: after adding RAIN DROP BRANCH CHANDELIER to the cart, the 'Secure Checkout' control is a <button data-testid='checkout-cta'>, logs \"Shopify checkoutUrl: https://adore.lighting/cart/c/hWNGFJ...\" and the click navigates the main frame to that Shopify-hosted cart/checkout URL (store primary domain of v1hj1w-3k.myshopify.com) — never to /checkout on adore-lights.preview.emergentagent.com. Hero (4 slides from /hero/slide1-4.jpg, 200s, 5s rotation, no dots), announcement sync across all 4 slides and default on /about, /kits (3 kits, 6 items each, zero prices/₹), home kits teaser (no ₹245000), new categories kids-lights & mirror-lights ('Coming soon' empty state), outdoor subs with ?sub= params, Shopify counts (chandeliers 3, double-height-chandeliers 6, wall 1), /api/upload + /api/uploads 404, /adore-admin loads. No console/page errors on any tested route.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Category page (empty collections: /shop/kids-lights, /shop/mirror-lights)", "issues": ["Refine 'Price (₹)' min/max filter and the sort dropdown render even when the collection has 0 products — could be hidden in the empty state", "Sort control appears to be a native <select> rather than the shadcn Select used elsewhere (cosmetic inconsistency)"]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Cart.handleCheckout correctly guards on falsy checkoutUrl and shows 'Preparing checkout…' instead of rendering a dead button — good.",
+    "Legacy /checkout page redirects to Shopify checkoutUrl and falls back to /cart when the cart is empty; no navigate('/checkout') remains in the codebase (only NewsletterPopup HIDDEN_ROUTES references the string, which is harmless).",
+    "Optional: checkoutUrl host is the store's primary domain (adore.lighting) rather than *.myshopify.com — expected Shopify behaviour, no action needed."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "not tested (skipped per request)", "frontend": "100%"},
+  "seed_data_creation": "One Shopify cart line created during checkout test (RAIN DROP BRANCH CHANDELIER x1); ephemeral Shopify cart, no app data written.",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Category slug for double-height is /shop/double-height-chandeliers (not /shop/double-height). Shopify products currently return ₹0 prices and some blank images — known store-side data issue, ignore. Checkout redirect lands on https://adore.lighting/cart/c/... — verify with page.on('framenavigated') plus the 'Shopify checkoutUrl:' console log; abort routes to the shopify host to avoid leaving the app.",
+  "rca_of_the_issue": "Not applicable — previously reported /checkout 404 is resolved; Cart now assigns window.location.href = checkoutUrl returned by the Shopify Storefront cartCreate mutation."
+}

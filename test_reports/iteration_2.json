@@ -1,0 +1,46 @@
+{
+  "summary": "Regression re-test of iteration_1 fixes. Backend: updated /app/backend/tests/backend_test.py for the new OrderCreate schema (subtotal+shipping+total), added tests for server-side total recomputation, free-shipping >50k, and a new TestRoomFilter class for lowercase room slugs. 38/43 pass; the only 5 failures are the room filter (all 5 room slugs return 0 products). Frontend (Playwright 1920x1080): verified checkout total parity (cart 19,700 / checkout 19,700 / stored order subtotal 18,500 + shipping 1,200 + total 19,700 / track 19,700 for Halo Disc Wall Sconce), 404 catch-all on /this-does-not-exist and /privacy (renders NotFound + nav + footer + WhatsApp widget) — but ONLY after I fixed a missing `import NotFound` in App.js, NewsletterPopup suppressed on /admin /checkout /cart /auth and auto-closed when navigating into a hidden route while open (still fires on /about), Nav at 1920px (logo centered exactly at x=960, 156.7px gap after 'Rooms'), Track placeholder 'e.g. ADRB643CA52', /legal/privacy contains salesadorelighting@gmail.com and no hello@adore.com, Category pluralisation ('1 piece' on architectural, '2 pieces' on chandeliers), contact inline phone error (data-testid='contact-phone-error' visible with message, valid 10-digit submits successfully), home sections + 0 broken images after full scroll, PDP (gallery thumbs, temp-warm/temp-cool toggle, 3 reviews, trust content), admin login + product create/edit/delete + orders/inquiries tabs.",
+  "backend_issues": {
+    "critical": [
+      {"endpoint": "GET /api/products?room=<slug>", "issue": "Room filter is a case-sensitive exact match ({'room': room}) while seeded products store capitalised rooms ('Living','Bedroom','Dining','Outdoor','Staircase'). Rooms.jsx now links to lowercase slugs (/rooms/living), so ALL 5 room landing pages render '0 pieces / No pieces in this collection yet.' Fix: case-insensitive query e.g. {'room': {'$regex': f'^{re.escape(room)}$', '$options': 'i'}} (or normalise seed data). Verified: ?room=living -> [], ?room=Living -> 3 products.", "priority": "HIGH"}
+    ],
+    "minor": [
+      {"endpoint": "POST /api/orders", "issue": "OrderCreate still requires client subtotal/shipping/total although the server recomputes and ignores them — they are dead required fields; consider making them optional or dropping them."},
+      {"endpoint": "POST /api/products", "issue": "Still no slug uniqueness check (409); duplicate slugs make a product unreachable via GET /api/products/{slug}. Carried over from iteration_1."},
+      {"endpoint": "GET /api/products", "issue": "Still no pagination; hard cap to_list(500). Carried over from iteration_1."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "App.js", "issue": "BLOCKER (fixed by me): Route path='*' element={<NotFound />} was added but NotFound was never imported, so any unknown URL threw 'NotFound is not defined' and rendered a blank page (the exact bug this iteration was meant to fix). I added `import NotFound from \"@/pages/NotFound\";`. Main agent should keep this import.", "selector": "[data-testid='notfound-home-cta']", "priority": "HIGH"},
+      {"component": "Category.jsx (room mode)", "issue": "Room landing page heading renders the raw slug ('living') instead of the room label ('Living Room'), and the copy reads 'Considered lighting for the living'. Map the slug to ROOMS[].name for display.", "selector": "/rooms/living h1", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [
+      {"flow": "Shop by Room", "issue": "/rooms/<slug> pages show zero products for every room due to the backend case-sensitive room filter (see backend critical).", "affected_selectors": ["a[href^='/rooms/']", "[data-testid^='product-card-']"]}
+    ],
+    "design_issues": [
+      {"screen": "Home hero", "issues": ["Carried over from iteration_1 (not re-verified as fixed): light eyebrow text 'SPRING EDITION - 2026' and 'BESPOKE COMMISSIONS' CTA over a bright photo with no scrim."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/backend_test.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [
+    "HIGH: Make the backend room filter case-insensitive (or seed lowercase room values) so /rooms/living, /rooms/bedroom, /rooms/dining, /rooms/outdoor, /rooms/staircase return products.",
+    "MEDIUM: Show the human room name on /rooms/:slug instead of the raw lowercase slug.",
+    "NOTE: I added the missing `import NotFound` to App.js — do not remove it.",
+    "LOW/backend: make subtotal/shipping/total optional in OrderCreate (server-authoritative), add slug uniqueness (409) and pagination to GET /api/products."
+  ],
+  "critical_code_review_comments": [
+    "App.js referenced <NotFound /> without an import — CRA/webpack still 'compiled successfully' so this only failed at runtime; always smoke-test a new route after adding it.",
+    "server.py list_products: `q['room'] = room` exact match couples the API contract to seed-data casing. Normalise on write and on read.",
+    "server.py create_order accepts subtotal/shipping/total from the client but ignores them; keeping them required invites future mismatch bugs.",
+    "server.py is ~640 lines with 100+ lines of SAMPLE_PRODUCTS inline — move seed data to backend/seed_data.py (repeat comment from iteration_1)."
+  ],
+  "updated_files": ["/app/frontend/src/App.js", "/app/backend/tests/backend_test.py"],
+  "success_rate": {"backend": "88% (38/43 pytest cases; 5 failures all from the room filter)", "frontend": "~95% of flows pass; 1 blocker fixed in-test-scope, 1 HIGH backend-driven room page failure, 1 MEDIUM copy issue"},
+  "seed_data_creation": "1 COD order ADRD79245B0 (Halo Disc Wall Sconce, total Rs 19,700), several TEST_ orders/inquiries/newsletter signups from pytest, 1 contact inquiry (TEST_c@example.com). Admin CRUD product 'test-regression-lamp' was created, edited and deleted; product count back at 12.",
+  "should_call_test_agent_after_fix": true,
+  "should_main_agent_self_test": false,
+  "test_credentials": "Admin: admin@adore.com / Admin@Adore2026 (works). /app/memory/test_credentials.md accurate.",
+  "context_for_next_testing_agent": "Backend suite: `cd /app/backend && python -m pytest tests/backend_test.py -q --junitxml=/app/test_reports/pytest/pytest_results.xml` (43 cases; TestRoomFilter is the only failing class and is an intentional red test for the case-sensitive room filter — it should go green once backend does a case-insensitive room lookup). Admin form testids are admin-name / admin-slug / admin-price / admin-save-product (NOT admin-form-*). PDP temperature toggles are temp-warm / temp-cool. Suppress the popup with add_init_script(\"localStorage.setItem('adore_popup_seen','1');\"). Verified fixed this iteration: checkout total parity, 404 route (after adding the missing import), popup route exclusion, nav 3-col grid, track placeholder, legal email, category pluralisation, contact inline phone error. Still open: room filter case mismatch and /rooms/:slug heading showing the raw slug.",
+  "rca_of_the_issue": "Room pages: Rooms.jsx now links lowercase slugs and Category.jsx passes ?room=living to GET /api/products, but server.py builds `q['room'] = room` as an exact, case-sensitive Mongo match while seeded documents store 'Living'/'Bedroom'/etc., so every room query returns []. 404 route: App.js added <Route path='*' element={<NotFound />}/> but omitted the import, producing a runtime ReferenceError and the same blank page as iteration_1 until the import was added."
+}

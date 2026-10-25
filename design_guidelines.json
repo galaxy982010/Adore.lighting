@@ -1,0 +1,161 @@
+{
+  "theme": "light",
+  "brand_name": "Adore",
+  "context": "e-commerce (luxury boutique editorial)",
+  "typography": {
+    "pairing_strategy": "Old Money Tech / Editorial Future",
+    "headlines": {
+      "family": "Cormorant Garamond, serif",
+      "weights": ["300", "400", "500", "600"],
+      "usage_rules": "Use for H1-H3. Apply tracking-tight for H1/H2."
+    },
+    "body_and_ui": {
+      "family": "Outfit, sans-serif",
+      "weights": ["300", "400", "500"],
+      "usage_rules": "Use for paragraphs, labels, small text. Keep leading-relaxed."
+    },
+    "hierarchy": {
+      "h1": "text-5xl sm:text-6xl tracking-tight leading-none",
+      "h2": "text-3xl sm:text-4xl tracking-tight leading-snug",
+      "h3": "text-2xl sm:text-3xl leading-snug",
+      "body": "text-base leading-relaxed",
+      "small_labels": "text-xs uppercase tracking-[0.2em]"
+    }
+  },
+  "colors": {
+    "strategy": "Warm neutral base with signature deep amber/terracotta accent. No excessive gold/black.",
+    "palette": {
+      "background": {
+        "primary": "#F9F8F6",
+        "secondary": "#F3F1ED",
+        "dark": "#2C2C2B"
+      },
+      "text": {
+        "primary": "#2C2C2B",
+        "secondary": "#595958",
+        "light": "#F9F8F6"
+      },
+      "accent": {
+        "amber": "#B85B24",
+        "terracotta": "#C35C45",
+        "bronze": "#8A5A44"
+      },
+      "border": {
+        "light": "#E5E3DC",
+        "dark": "#3D3D3C"
+      }
+    },
+    "rules": [
+      "Use #F9F8F6 (Ivory) as main background instead of pure white.",
+      "Use #2C2C2B (Soft Charcoal) for text instead of pure black.",
+      "Accent colors (#B85B24) should be used sparingly for primary CTAs and active states.",
+      "Avoid default browser blue links.",
+      "Ensure text contrast meets APCA/WCAG AA."
+    ]
+  },
+  "spacing_and_grids": {
+    "spacing_system": "Consistent 8px scaling (Tailwind defaults). Use generous padding (p-8, p-12, p-16) to create a boutique gallery feel.",
+    "layout_mode": "The 'Bento' Grid Protocol / High Density but with editorial breathing room.",
+    "container": "Max-width 7xl (max-w-7xl) with px-4 sm:px-8 mx-auto.",
+    "rules": [
+      "Use negative space aggressively to highlight product imagery.",
+      "Grid children must be direct children. Use align-items: start to prevent default stretch where appropriate."
+    ]
+  },
+  "visual_enhancers": {
+    "surfaces": {
+      "header": "Crystal Glass variant: backdrop-blur-xl bg-[#F9F8F6]/80. Do NOT use completely transparent headers.",
+      "cards": "Flat solid background with 1px delicate border (border-[#E5E3DC]). No default drop shadows.",
+      "images": "Use subtle overlay max bg-black/20 for hero if text is on top, or gradient to maintain image clarity."
+    },
+    "motion": {
+      "hover": "Subtle scale up (scale-105) for images, opacity shifts for text links. Transition duration 300ms ease-out.",
+      "scroll": "Fade-in and slight translate-y-4 using framer-motion.",
+      "rules": "No universal `transition: all`. Target specific properties like `transition-opacity`, `transition-transform`."
+    }
+  },
+  "components_styling": {
+    "hero": {
+      "layout": "Full-bleed lifestyle image or video with center or left aligned editorial text.",
+      "overlay": "bg-black/30 or gradient to ensure text readability.",
+      "cta": "Solid accent color button or transparent button with 1px border. Pill-shaped or slight rounding."
+    },
+    "navigation": {
+      "layout": "Sticky header (z-50). Logo center, links left/right or Logo left, links center, icons right.",
+      "background": "backdrop-blur-xl bg-[#F9F8F6]/90 border-b border-[#E5E3DC].",
+      "mobile": "Hamburger menu opening a full-screen or slide-out menu."
+    },
+    "product_card": {
+      "layout": "Image top (aspect-[4/5] or 1:1), text bottom. Left-aligned text.",
+      "image": "Fill container, object-cover. On hover, subtle scale (scale-105).",
+      "details": "Title in Cormorant Garamond, price in Outfit. No card border/shadow unless strictly necessary."
+    },
+    "category_tile": {
+      "layout": "Square or tall rectangle with background image and text overlay at bottom.",
+      "typography": "H3 size text, tracking-tight, white text with text-shadow for contrast."
+    },
+    "footer": {
+      "layout": "Dark background (#2C2C2B) with light text (#F9F8F6) to create contrast shift.",
+      "spacing": "py-20 px-8.",
+      "elements": "Newsletter signup, brand story strip, links."
+    }
+  },
+  "libraries_and_tools": {
+    "icons": "lucide-react for UI icons (user, cart, search, chevron).",
+    "motion": "framer-motion for scroll reveal and page transitions.",
+    "ui_components": "shadcn/ui for complex interactive elements (Select, Dialog, Tabs). Customize heavily to remove 'Vercel-look'.",
+    "3d_and_advanced": "Not strictly necessary for the core MVP unless visualizing lighting spread, but framer-motion is sufficient for the 'boutique' feel."
+  },
+  "accessibility": [
+    "All interactive elements MUST include data-testid attribute (e.g., data-testid='add-to-cart-btn').",
+    "Provide clear focus states (ring-1 ring-accent).",
+    "Use appropriate aria-labels for icon-only buttons."
+  ],
+  "image_urls": {
+    "hero_living_room": {
+      "url": "https://images.unsplash.com/photo-1704040686413-2c607dbd2f06?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1ODh8MHwxfHNlYXJjaHw0fHxsdXh1cnklMjBsaXZpbmclMjByb29tJTIwbGlnaHRpbmclMjBpbnRlcmlvcnxlbnwwfHx8fDE3ODQxNzk2OTR8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Luxury living room interior - perfect for hero section"
+    },
+    "category_chandelier": {
+      "url": "https://images.unsplash.com/photo-1706820229870-f9a8c6dac193?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MjJ8MHwxfHNlYXJjaHwzfHxtb2Rlcm4lMjBjaGFuZGVsaWVyJTIwZGluaW5nJTIwcm9vbXxlbnwwfHx8fDE3ODQxNzk2OTR8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Modern chandelier over dining table - category image"
+    },
+    "category_pendant": {
+      "url": "https://images.unsplash.com/photo-1648415198825-7c805bfa043e?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHwzfHxiZWRyb29tJTIwd2FybSUyMGxpZ2h0aW5nJTIwcGVuZGFudHxlbnwwfHx8fDE3ODQxNzk2OTR8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Bedroom warm pendant light - category image"
+    },
+    "category_wall_sconce": {
+      "url": "https://images.unsplash.com/photo-1775660922989-f0c624413269?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMjh8MHwxfHNlYXJjaHwzfHxsdXh1cnklMjB3YWxsJTIwc2NvbmNlJTIwbGlnaHRpbmd8ZW58MHx8fHwxNzg0MTc5Njk0fDA&ixlib=rb-4.1.0&q=85",
+      "description": "Modern circular wall sconce - category image"
+    },
+    "product_1": {
+       "url": "https://images.unsplash.com/photo-1586450428662-92fe683549b9?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MjJ8MHwxfHNlYXJjaHwyfHxtb2Rlcm4lMjBjaGFuZGVsaWVyJTIwZGluaW5nJTIwcm9vbXxlbnwwfHx8fDE3ODQxNzk2OTR8MA&ixlib=rb-4.1.0&q=85",
+       "description": "Gold chandelier product detail"
+    },
+    "product_2": {
+      "url": "https://images.unsplash.com/photo-1764760764956-fcb78be107a5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzB8MHwxfHNlYXJjaHw0fHxiZWRyb29tJTIwd2FybSUyMGxpZ2h0aW5nJTIwcGVuZGFudHxlbnwwfHx8fDE3ODQxNzk2OTR8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Warm bedroom light product"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Use .js/.jsx extensions for all files. DO NOT output .tsx files.",
+    "Implement the pages using React and Tailwind CSS.",
+    "Install necessary fonts (Cormorant Garamond, Outfit) via Google Fonts in index.html or index.css.",
+    "Use 'react-router-dom' for page navigation (Home, Categories, PDP, Cart, Checkout, etc).",
+    "Use 'lucide-react' for icons.",
+    "Ensure the hero section does NOT use a completely transparent header; use glassmorphism.",
+    "Do not use generic drop shadows on cards; use the flat editorial style with generous spacing.",
+    "Use 'framer-motion' for subtle scroll/hover animations.",
+    "Build Shadcn components (Select, Dialog, Tabs) in standard .js and remove default Vercel-look by applying the brand's Ivory/Charcoal palette and Outfit font."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Do not apply universal transition (e.g., transition: all). Add transitions for specific interactive elements.",
+    "Do not center align the app container (.App { text-align: center; }).",
+    "Create depth through layered design elements with z-index hierarchy and glassmorphism.",
+    "Use 2-3x more spacing than typical (p-8, p-12).",
+    "Never use AI assistant emoji characters for icons.",
+    "Use 'sonner' for toasts.",
+    "Prioritize existing components in src/components/ui.",
+    "Ensure all interactive elements have data-testid."
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "summary": "Scoped re-test of the Adore update (minimal header, announcement, new categories, store removal, hero polish, warranty/EMI removal, free shipping, hidden admin, coupons, product popup). Backend: 57 passed / 1 skipped (100% of executed) after updating the stale iteration-2 suite (old admin creds, ₹1,200 shipping, 'architectural' category) and adding new coverage for coupons + new categories. Frontend: verified end-to-end via Playwright on the public preview URL — header, hero autoplay (4 distinct slides in 13s, no dots/counter), /shop/fan-chandeliers + /shop/bulbs with all 12 sub-chips and ?sub= routing, PDP (no warranty/EMI, correct GST+shipping line, UPI/Cards/Netbanking), cart ₹18,500 with 'Complimentary across India', ADORE10 coupon -> ₹16,650, COD order placed (shipping=0, discount=1850, coupon_code=ADORE10), product popup at ~25s on home and suppressed on /cart /checkout /auth /adore-admin, /stores falls back to Home, footer has no Stores link, no admin links anywhere. Two real scope gaps found: admin Coupons tab is unreachable and Contact page still embeds Google Maps 'Find us'.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/orders/track/{order_number}", "issue": "Without ?email the response omits subtotal/shipping/total (returns requires_email only). Intentional privacy design, but the previous test suite assumed full payload — tests updated to pass email."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Admin (/adore-admin)", "issue": "Coupons tab is MISSING. Admin.jsx line ~131 renders only [\"products\",\"orders\",\"inquiries\"], so the fully-implemented coupons panel (Admin.jsx lines 244-290, incl. coupon-new-code / coupon-create-btn / coupon-row-*) can never be reached. Requirement was four working tabs.", "selector": "[data-testid=\"admin-tab-coupons\"] (does not exist)", "priority": "HIGH"},
+      {"component": "Contact page", "issue": "Physical-location reference NOT removed: a 'Find us' block with a Google Maps iframe (maps.google.com/maps?q=New+Delhi) still renders (Contact.jsx lines 79-93). Violates 'remove ALL physical store references' and contradicts files_of_reference note 'Contact.jsx — no Google Maps'.", "selector": "iframe[title=\"Adore Studio Location\"]", "priority": "HIGH"},
+      {"component": "App.js routes", "issue": "Legacy /admin route is still registered (App.js line 48) alongside /adore-admin, so the admin panel is reachable at two URLs. Admin path was supposed to be moved/hidden to /adore-admin only.", "selector": "route path=\"admin\"", "priority": "MEDIUM"},
+      {"component": "Nav announcement bar", "issue": "Announcement bar uses 'hidden md:flex' so 'Complimentary Shipping Across India' is not shown at all on mobile (390px) — verified missing in mobile screenshot.", "selector": "header > div > div.hidden.md\\:flex", "priority": "MEDIUM"},
+      {"component": "ProductTeaserPopup (NewsletterPopup.jsx)", "issue": "Popup eyebrow copy reads 'JUST VIEWED' for a random featured product the user never viewed — misleading copy for a rotating teaser.", "selector": "[data-testid=\"product-popup\"]", "priority": "LOW"},
+      {"component": "Toast / Nav", "issue": "The 'Coupon ADORE10 applied' toast renders centered at the very top and overlaps the centered 'Adore Lighting' logo in the header (see cart screenshot). Needs a top offset below the header or higher/lower z-index placement.", "selector": ".fixed toast container", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Home hero", "issues": ["Product teaser popup bounding box (l24,r384) horizontally overlaps the hero CTA row (hero-cta-shop l300,r535). The CTA click still succeeded (no pointer-events blocking), but the overlap looks unintentional at 1920x1080 — consider raising the popup or shifting the CTA."]},
+      {"screen": "Wishlist / PDP", "issues": ["Clicking PDP wishlist-btn while signed out gives no visible feedback; /wishlist then shows 'Sign in to save favourites'. An inline toast/redirect prompt on the PDP would be clearer (pre-existing behaviour, not in this scope)."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Admin.jsx: add \"coupons\" to the tab array (and its count label) so data-testid=admin-tab-coupons renders — the panel code already exists.",
+    "Contact.jsx: remove the 'Find us' Google Maps iframe block (lines 79-93) to complete physical-store removal.",
+    "App.js: drop the legacy <Route path=\"admin\"> so the panel lives only at /adore-admin.",
+    "Nav.jsx: decide whether the announcement bar should also render on mobile (currently hidden below md).",
+    "Delete dead file /app/frontend/src/pages/StoreLocator.jsx — it is no longer imported but still references BRAND.storeCount / BRAND.cities which no longer exist in lib/api.js (would crash if re-imported).",
+    "Consider changing popup eyebrow from 'JUST VIEWED' to e.g. 'FEATURED PIECE'.",
+    "Fix toast overlapping the centered header logo."
+  ],
+  "critical_code_review_comments": [
+    "Admin.jsx tab list and the tab render blocks are out of sync — the coupons JSX is dead code because the tab is never rendered. Drive tabs from a single config array to prevent this class of bug.",
+    "pages/StoreLocator.jsx is orphaned dead code referencing removed BRAND fields (BRAND.storeCount, BRAND.cities.length) — remove it.",
+    "NewsletterPopup.jsx: the 25s first-show timeout and the 60s interval start simultaneously, so shows land at 25s and 60s (35s apart) instead of an even 60s cadence. Chain the interval inside the first timeout if even spacing is intended.",
+    "server.py create_order silently ignores an invalid/expired coupon_code (discount stays 0, coupon_code null) with no signal to the client — the shopper may believe the discount applied. Return the applied coupon status or 400."
+  ],
+  "updated_files": [
+    "/app/backend/tests/backend_test.py"
+  ],
+  "success_rate": {"backend": "100% (57 passed, 1 skipped)", "frontend": "~85% (2 of 11 scope items failed: admin coupons tab, Contact google maps)"},
+  "seed_data_creation": "Test orders (customer 'TEST QA Buyer' / TEST_qa@example.com, TEST_buyer@example.com), TEST_ newsletter emails, TEST_ inquiries, and a transient TEST<hex> coupon (deleted in the same test). No seeded/production data modified.",
+  "should_call_test_agent_after_fix": true,
+  "should_main_agent_self_test": false,
+  "test_credentials": "Admin: salesadorelighting@gmail.com / Adore@Studio2026 at /adore-admin (login form uses data-testid auth-email / auth-password / auth-submit, NOT admin-email/admin-password).",
+  "context_for_next_testing_agent": "Backend suite /app/backend/tests/backend_test.py is now current: admin creds updated to salesadorelighting@gmail.com, shipping expectations are 0 everywhere, track tests pass ?email, and new classes TestNewCategories / TestCoupons / TestAdminSeed were added. One test is skipped by design (no seeded product under the ₹10,000 coupon minimum). Already verified and passing: header/announcement, hero autoplay+no dots, fan-chandeliers & bulbs (12 chips + ?sub=), PDP warranty/EMI removal, cart+checkout free shipping, ADORE10 coupon end-to-end incl. persisted order (shipping=0, discount=1850), product popup timing + hidden routes, /stores fallback, no admin links in nav/footer. Re-verify after fixes: admin-tab-coupons + coupon create/delete UI, Contact page maps removal, /admin route removal, mobile announcement bar.",
+  "rca_of_the_issue": "Admin coupons tab: the tab labels are hard-coded as [\"products\",\"orders\",\"inquiries\"] in Admin.jsx (~line 131) while the conditional render block checks tab === \"coupons\" (line 244); since setTab(\"coupons\") is never triggerable, the panel is unreachable dead code. Contact maps: the Google Maps block in Contact.jsx was simply not deleted during the store-reference cleanup pass. Both are one-place edits in the frontend."
+}
