@@ -15,12 +15,16 @@ async function storefront(query, variables = {}) {
     if (!isShopifyConfigured()) {
         throw new Error("Shopify Storefront API is not configured.");
     }
+    const authHeaders = TOKEN.startsWith("shpat_")
+        ? { "Shopify-Storefront-Private-Token": TOKEN }
+        : { "X-Shopify-Storefront-Access-Token": TOKEN };
+
     const res = await fetch(ENDPOINT, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "X-Shopify-Storefront-Access-Token": TOKEN,
             "Accept": "application/json",
+            ...authHeaders,
         },
         body: JSON.stringify({ query, variables }),
     });
