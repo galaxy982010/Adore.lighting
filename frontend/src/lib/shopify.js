@@ -1,7 +1,7 @@
 // Shopify Storefront API (GraphQL) client — public read-only access.
 // Runs entirely in the browser. Do NOT put admin tokens here.
 
-const DOMAIN = process.env.REACT_APP_SHOOP_DOMAIN || process.env.REACT_APP_SHOPIFY_STORE_DOMAIN || "v1hj1w-3k.myshopify.com";
+const DOMAIN = process.env.REACT_APP_SHOPIFY_STORE_DOMAIN || "v1hj1w-3k.myshopify.com";
 const VERSION = process.env.REACT_APP_SHOPIFY_STOREFRONT_API_VERSION || "2025-01";
 const TOKEN = process.env.REACT_APP_SHOPIFY_STOREFRONT_ACCESS_TOKEN || "";
 
@@ -1386,16 +1386,22 @@ function getFallbackProductByHandle(handle) {
 }
 
 export async function listProducts({ first = 100, query = "" } = {}) {
+    let live = [];
     if (isShopifyConfigured()) {
         try {
             const data = await storefront(Q_PRODUCTS, { first, query });
-            const live = (data.products?.nodes || []).map(normalizeProduct).filter(Boolean);
-            if (live.length > 0) return live;
+            live = (data.products?.nodes || []).map(normalizeProduct).filter(Boolean);
         } catch (e) {
             console.warn("Shopify Storefront API query failed, displaying Adore catalog:", e.message);
         }
     }
-    return filterFallbackProducts({ first, query });
+    const fallback = filterFallbackProducts({ first, query });
+    if (live.length === 0) return fallback;
+
+    // Combine live Shopify products with catalog products so categories without Shopify products yet aren't empty
+    const liveHandles = new Set(live.map((p) => (p.handle || p.slug || "").toLowerCase()));
+    const extraFallback = fallback.filter((p) => !liveHandles.has((p.handle || p.slug || "").toLowerCase()));
+    return [...live, ...extraFallback];
 }
 
 export async function getProductByHandle(handle) {
@@ -1415,7 +1421,8 @@ function forceShopifyHost(url) {
     if (!url || !DOMAIN) return url;
     try {
         const u = new URL(url);
-        if (!u.hostname.endsWith(".myshopify.com")) {
+        // Ensure checkout lands directly on the Shopify store host
+        if (u.hostname === "adore.lighting" || !u.hostname.endsWith(".myshopify.com")) {
             u.hostname = DOMAIN;
             u.protocol = "https:";
         }
@@ -1581,13 +1588,44 @@ const throwUserErrors = (mutationRoot) => {
     return mutationRoot?.cart || null;
 };
 
+const DEFAULT_SHOPIFY_VARIANT = "gid://shopify/ProductVariant/55493290590499";
+
+function toShopifyLineInput(item) {
+    if (!item) return null;
+    const isGid = typeof item.merchandiseId === "string" && item.merchandiseId.startsWith("gid://shopify/ProductVariant/");
+    if (isGid) {
+        return {
+            merchandiseId: item.merchandiseId,
+            quantity: item.quantity || 1,
+            attributes: item.attributes || [],
+        };
+    }
+    const fallbackProd = FALLBACK_PRODUCTS.find((p) =>
+        p.firstVariantId === item.merchandiseId ||
+        p.variants?.some((v) => v.id === item.merchandiseId)
+    ) || FALLBACK_PRODUCTS[0];
+
+    return {
+        merchandiseId: DEFAULT_SHOPIFY_VARIANT,
+        quantity: item.quantity || 1,
+        attributes: [
+            { key: "Catalogue Selection", value: fallbackProd.name || "Custom Design" },
+            { key: "Catalogue Code", value: String(item.merchandiseId || fallbackProd.slug) },
+        ],
+    };
+}
+
 export async function cartCreate(lines = []) {
     if (isShopifyConfigured()) {
-        try {
-            const data = await storefront(M_CART_CREATE, { lines });
-            return normalizeCart(throwUserErrors(data.cartCreate));
-        } catch (e) {
-            console.warn("Shopify cartCreate error, using local bag:", e.message);
+        const shopifyLines = lines.map(toShopifyLineInput).filter(Boolean);
+        if (shopifyLines.length > 0) {
+            try {
+                const data = await storefront(M_CART_CREATE, { lines: shopifyLines });
+                const cart = throwUserErrors(data.cartCreate);
+                if (cart) return normalizeCart(cart);
+            } catch (e) {
+                console.warn("Shopify cartCreate error, using local bag:", e.message);
+            }
         }
     }
     return localCartCreate(lines);
@@ -1595,11 +1633,15 @@ export async function cartCreate(lines = []) {
 
 export async function cartLinesAdd(cartId, lines) {
     if (isShopifyConfigured() && !cartId?.startsWith("adore_local")) {
-        try {
-            const data = await storefront(M_LINES_ADD, { cartId, lines });
-            return normalizeCart(throwUserErrors(data.cartLinesAdd));
-        } catch (e) {
-            console.warn("Shopify cartLinesAdd error:", e.message);
+        const shopifyLines = lines.map(toShopifyLineInput).filter(Boolean);
+        if (shopifyLines.length > 0) {
+            try {
+                const data = await storefront(M_LINES_ADD, { cartId, lines: shopifyLines });
+                const cart = throwUserErrors(data.cartLinesAdd);
+                if (cart) return normalizeCart(cart);
+            } catch (e) {
+                console.warn("Shopify cartLinesAdd error:", e.message);
+            }
         }
     }
     const current = getStoredLocalCart() || buildLocalCartState();

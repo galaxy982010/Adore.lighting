@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { db } from "@/lib/supabase";
 
 export default function Bespoke() {
     return <InquiryPage
@@ -19,7 +20,11 @@ export function InquiryPage({ title, eyebrow, heading, blurb, inquiryType }) {
     const submit = async (e) => {
         e.preventDefault();
         try {
-            await api.post("/inquiry", { ...form, inquiry_type: inquiryType });
+            try {
+                await db.submitInquiry({ ...form, inquiry_type: inquiryType });
+            } catch {
+                await api.post("/inquiry", { ...form, inquiry_type: inquiryType });
+            }
             toast.success("Thank you — a studio lead will be in touch within 2 working days.");
             setSent(true);
         } catch {

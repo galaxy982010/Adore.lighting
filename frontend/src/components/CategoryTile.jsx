@@ -9,10 +9,10 @@ export default function CategoryTile({ slug, name, image, size = "default" }) {
             className={`relative block ${aspect} overflow-hidden image-zoom bg-charcoal group`}
         >
             <img src={image} alt={name} loading="lazy" className="w-full h-full object-cover opacity-80 group-hover:opacity-70 transition-opacity duration-500" />
-            <div className="absolute inset-0 bg-gradient-to-t from-charcoal/70 via-transparent to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 p-6 md:p-8 text-ivory">
-                <div className="tracking-editorial text-ivory/70 mb-1">Collection</div>
-                <div className="font-serif text-3xl md:text-4xl leading-none">{name}</div>
+            <div className="absolute inset-0 bg-gradient-to-t from-charcoal/80 via-charcoal/20 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 p-3 sm:p-5 md:p-8 text-ivory">
+                <div className="tracking-editorial text-ivory/70 text-[9px] sm:text-[10px] md:text-xs mb-1">Collection</div>
+                <div className="font-serif text-lg sm:text-2xl md:text-4xl leading-tight line-clamp-2">{name}</div>
             </div>
         </Link>
     );

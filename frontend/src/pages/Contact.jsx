@@ -2,6 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Instagram, Facebook, Youtube, Linkedin, Phone, Mail, MessageCircle } from "lucide-react";
 import { api, BRAND } from "@/lib/api";
+import { db } from "@/lib/supabase";
 
 export default function Contact() {
     const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
@@ -21,7 +22,11 @@ export default function Contact() {
         setPhoneErr("");
         setLoading(true);
         try {
-            await api.post("/inquiry", { ...form, inquiry_type: "contact" });
+            try {
+                await db.submitInquiry({ ...form, inquiry_type: "contact" });
+            } catch {
+                await api.post("/inquiry", { ...form, inquiry_type: "contact" });
+            }
             setSent(true);
             toast.success("Thank you — we'll be in touch within a working day.");
         } catch {

@@ -66,34 +66,34 @@ export default function Kits() {
     return (
         <div>
             <KitQuoteDialog kit={quoteKit} onClose={() => setQuoteKit(null)} />
-            <section className="max-w-[1400px] mx-auto px-6 md:px-10 pt-16 pb-8">
-                <div className="tracking-editorial text-muted2 mb-4">Lighting Kits</div>
-                <h1 className="font-serif text-5xl md:text-6xl">Curated Suggestions, One Room at a Time.</h1>
-                <p className="mt-6 max-w-2xl text-charcoal/70">
+            <section className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 pt-8 sm:pt-16 pb-6 sm:pb-8">
+                <div className="tracking-editorial text-muted2 mb-2 sm:mb-4 text-xs">Lighting Kits</div>
+                <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl">Curated Suggestions, One Room at a Time.</h1>
+                <p className="mt-4 sm:mt-6 max-w-2xl text-charcoal/70 text-xs sm:text-base leading-relaxed">
                     These are lighting compositions our studio suggests for each room — inspiration, not a fixed package. Mix, match and swap pieces from the Adore catalogue to make each layer your own.
                 </p>
             </section>
 
             {KITS.map((kit, idx) => (
-                <section key={kit.slug} data-testid={`kit-${kit.slug}`} data-kit-title={kit.title} className={`py-24 ${idx % 2 === 0 ? "bg-ivory-2" : "bg-ivory"}`}>
-                    <div className="max-w-[1400px] mx-auto px-6 md:px-10 grid md:grid-cols-2 gap-14 items-center">
+                <section key={kit.slug} data-testid={`kit-${kit.slug}`} data-kit-title={kit.title} className={`py-12 sm:py-20 md:py-24 ${idx % 2 === 0 ? "bg-ivory-2" : "bg-ivory"}`}>
+                    <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 grid md:grid-cols-2 gap-8 sm:gap-14 items-center">
                         <div className={`aspect-[4/5] overflow-hidden ${idx % 2 === 1 ? "md:order-2" : ""}`}>
                             <img src={kit.image} alt={kit.title} className="w-full h-full object-cover" loading="lazy" />
                         </div>
                         <div>
-                            <div className="tracking-editorial text-amber2 mb-4 flex items-center gap-2"><Sparkles size={14} /> Suggested layering</div>
-                            <h2 className="font-serif text-4xl md:text-5xl leading-tight">{kit.title}</h2>
-                            <p className="mt-6 text-charcoal/75 leading-relaxed max-w-lg">{kit.blurb}</p>
-                            <ul className="mt-10 grid grid-cols-2 gap-x-6 gap-y-3">
+                            <div className="tracking-editorial text-amber2 mb-2 sm:mb-4 flex items-center gap-2 text-xs"><Sparkles size={14} /> Suggested layering</div>
+                            <h2 className="font-serif text-2xl sm:text-4xl md:text-5xl leading-tight">{kit.title}</h2>
+                            <p className="mt-4 sm:mt-6 text-charcoal/75 leading-relaxed max-w-lg text-xs sm:text-base">{kit.blurb}</p>
+                            <ul className="mt-6 sm:mt-10 grid grid-cols-2 gap-x-4 sm:gap-x-6 gap-y-2 sm:gap-y-3">
                                 {kit.items.map((it) => (
                                     <li key={it.name}>
                                         <Link
                                             to={it.to}
                                             data-testid={`kit-${kit.slug}-${it.name.toLowerCase().replace(/\s+/g, "-")}`}
-                                            className="group flex items-center justify-between border-b border-[#E5E3DC] py-3 hover:border-amber2"
+                                            className="group flex items-center justify-between border-b border-[#E5E3DC] py-2.5 sm:py-3 hover:border-amber2"
                                         >
-                                            <span className="text-sm">{it.name}</span>
-                                            <span className="tracking-editorial text-muted2 text-[10px] group-hover:text-amber2">Explore →</span>
+                                            <span className="text-xs sm:text-sm">{it.name}</span>
+                                            <span className="tracking-editorial text-muted2 text-[9px] sm:text-[10px] group-hover:text-amber2">Explore →</span>
                                         </Link>
                                     </li>
                                 ))}
@@ -102,11 +102,11 @@ export default function Kits() {
                                 type="button"
                                 data-testid={`kit-${kit.slug}-quote-button`}
                                 onClick={() => setQuoteKit(kit)}
-                                className="mt-10 inline-flex items-center gap-3 bg-charcoal text-ivory px-8 py-4 tracking-editorial text-xs hover:bg-amber2 transition-colors"
+                                className="mt-8 sm:mt-10 inline-flex items-center gap-3 bg-charcoal text-ivory px-6 sm:px-8 py-3.5 sm:py-4 tracking-editorial text-xs hover:bg-amber2 transition-colors"
                             >
                                 Request a quote
                             </button>
-                            <p className="mt-6 text-xs text-muted2 italic">
+                            <p className="mt-4 sm:mt-6 text-[11px] sm:text-xs text-muted2 italic">
                                 A composition — not a package. Explore each layer and choose from the Adore catalogue.
                             </p>
                         </div>

@@ -80,17 +80,9 @@ export const CartProvider = ({ children }) => {
         setCart(null);
     };
 
-    // Centralised redirect to Shopify's hosted checkout. Uses the URL that
-    // Shopify's cartCreate returned — never a relative or internal route.
+    // Redirect to checkout page
     const redirectToCheckout = () => {
-        const url = cart?.checkoutUrl;
-        console.log("Shopify checkoutUrl:", url);
-        if (!url) {
-            console.error("Shopify checkoutUrl missing", { cartId: cart?.id, lineCount: cart?.lines?.length });
-            toast.error("Preparing checkout — please try again in a moment.");
-            return;
-        }
-        window.location.href = url;
+        window.location.href = "/checkout";
     };
 
     const items = cart?.lines || [];

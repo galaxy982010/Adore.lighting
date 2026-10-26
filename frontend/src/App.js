@@ -37,7 +37,10 @@ function App() {
                             <Route path="rooms" element={<Rooms />} />
                             <Route path="rooms/:room" element={<Category />} />
                             <Route path="cart" element={<Cart />} />
+                            <Route path="cart/c/:cartId" element={<Checkout />} />
+                            <Route path="cart/:cartId" element={<Checkout />} />
                             <Route path="checkout" element={<Checkout />} />
+                            <Route path="checkouts/:checkoutId" element={<Checkout />} />
                             <Route path="about" element={<About />} />
                             <Route path="stores" element={<Home />} />
                             <Route path="bespoke" element={<Bespoke />} />

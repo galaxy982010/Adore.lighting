@@ -30,13 +30,13 @@ export default function ProductCard({ product }) {
                     />
                 )}
                 {product.new_arrival && (
-                    <span className="absolute top-4 left-4 tracking-editorial text-charcoal bg-ivory/90 px-3 py-1 text-[10px]">New</span>
+                    <span className="absolute top-2.5 left-2.5 sm:top-4 sm:left-4 tracking-editorial text-charcoal bg-ivory/90 px-2 py-0.5 sm:px-3 sm:py-1 text-[9px] sm:text-[10px] uppercase">New</span>
                 )}
             </div>
-            <div className="pt-5">
-                <div className="text-[10px] tracking-editorial text-muted2 mb-1 capitalize">{(product.category || "").replace(/-/g, " ")}</div>
-                <div className="font-serif text-xl leading-snug">{product.name}</div>
-                <div className="mt-1 text-sm text-charcoal/80">{formatINR(product.price)}</div>
+            <div className="pt-3 sm:pt-4 md:pt-5">
+                <div className="text-[9px] sm:text-[10px] tracking-editorial text-muted2 mb-0.5 sm:mb-1 capitalize">{(product.category || "").replace(/-/g, " ")}</div>
+                <div className="font-serif text-sm sm:text-base md:text-lg lg:text-xl leading-snug line-clamp-2 group-hover:text-gold transition-colors duration-300">{product.name}</div>
+                <div className="mt-1 text-xs sm:text-sm text-charcoal/90 font-medium">{formatINR(product.price)}</div>
             </div>
         </Link>
     );

@@ -60,30 +60,33 @@ export default function Category() {
 
     const setSub = (s) => (s ? setSearchParams({ sub: s }) : setSearchParams({}));
 
+    const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+
     return (
         <div>
-            <div className="max-w-[1400px] mx-auto px-6 md:px-10 pt-16 pb-6">
-                <div className="tracking-editorial text-muted2 mb-4">{meta.tag}</div>
-                <h1 className="font-serif text-5xl md:text-6xl">{meta.name}</h1>
-                {meta.blurb && <p className="mt-4 max-w-xl text-charcoal/70">{meta.blurb}</p>}
+            <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 pt-8 sm:pt-16 pb-4 sm:pb-6">
+                <div className="tracking-editorial text-muted2 mb-2 sm:mb-4 text-xs">{meta.tag}</div>
+                <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl">{meta.name}</h1>
+                {meta.blurb && <p className="mt-2 sm:mt-4 max-w-xl text-charcoal/70 text-xs sm:text-base">{meta.blurb}</p>}
             </div>
 
             {!isRoom && catEntry?.subs && (
-                <div className="max-w-[1400px] mx-auto px-6 md:px-10 flex flex-wrap gap-3 mb-4">
+                <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 sm:pb-0 sm:flex-wrap mb-4">
                     <button data-testid="sub-all" onClick={() => setSub("")}
-                        className={`px-4 py-2 text-xs tracking-editorial border transition-colors ${!sub ? "bg-charcoal text-ivory border-charcoal" : "border-charcoal/30 hover:border-amber2 hover:text-amber2"}`}>
+                        className={`px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs tracking-editorial border shrink-0 transition-colors ${!sub ? "bg-charcoal text-ivory border-charcoal" : "border-charcoal/30 hover:border-amber2 hover:text-amber2"}`}>
                         All {meta.name}
                     </button>
                     {catEntry.subs.map((s) => (
                         <button key={s.slug} data-testid={`sub-${s.slug}`} onClick={() => setSub(s.slug)}
-                            className={`px-4 py-2 text-xs tracking-editorial border transition-colors ${sub === s.slug ? "bg-charcoal text-ivory border-charcoal" : "border-charcoal/30 hover:border-amber2 hover:text-amber2"}`}>
+                            className={`px-3 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs tracking-editorial border shrink-0 transition-colors ${sub === s.slug ? "bg-charcoal text-ivory border-charcoal" : "border-charcoal/30 hover:border-amber2 hover:text-amber2"}`}>
                             {s.name}
                         </button>
                     ))}
                 </div>
             )}
 
-            <div className="max-w-[1400px] mx-auto px-6 md:px-10 grid lg:grid-cols-[240px_1fr] gap-12 pb-24 pt-6">
+            <div className="max-w-[1400px] mx-auto px-4 sm:px-6 md:px-10 grid lg:grid-cols-[240px_1fr] gap-8 lg:gap-12 pb-16 sm:pb-24 pt-4 sm:pt-6">
+                {/* Desktop Sidebar */}
                 <aside className="hidden lg:block sticky top-32 self-start">
                     <div className="tracking-editorial mb-4">Refine</div>
                     <div className="space-y-6 text-sm">
@@ -99,20 +102,40 @@ export default function Category() {
                 </aside>
 
                 <div>
-                    <div className="flex items-center justify-between mb-8">
-                        <div className="text-sm text-muted2">
+                    <div className="flex items-center justify-between mb-6 sm:mb-8 flex-wrap gap-3">
+                        <div className="text-xs sm:text-sm text-muted2">
                             {loading ? "Loading" : error ? "Unable to load — please try again" : `${products.length} piece${products.length === 1 ? "" : "s"}`}
                         </div>
-                        <select data-testid="sort-select" value={sort} onChange={(e) => setSort(e.target.value)} className="bg-transparent border-b border-charcoal/30 text-sm py-1 outline-none">
-                            <option value="featured">Featured</option>
-                            <option value="new">Newest</option>
-                            <option value="price-asc">Price: Low to High</option>
-                            <option value="price-desc">Price: High to Low</option>
-                        </select>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
+                                className="lg:hidden text-xs tracking-editorial border border-charcoal/30 px-3 py-1 hover:border-amber2"
+                            >
+                                {mobileFilterOpen ? "Close Filters" : "Filter Price"}
+                            </button>
+                            <select data-testid="sort-select" value={sort} onChange={(e) => setSort(e.target.value)} className="bg-transparent border-b border-charcoal/30 text-xs sm:text-sm py-1 outline-none">
+                                <option value="featured">Featured</option>
+                                <option value="new">Newest</option>
+                                <option value="price-asc">Price: Low to High</option>
+                                <option value="price-desc">Price: High to Low</option>
+                            </select>
+                        </div>
                     </div>
 
+                    {/* Mobile collapsible filter */}
+                    {mobileFilterOpen && (
+                        <div className="lg:hidden mb-6 p-4 bg-ivory-2 border border-[#E5E3DC]">
+                            <div className="text-xs tracking-editorial text-muted2 mb-2">Filter by Price (₹)</div>
+                            <div className="flex gap-2">
+                                <input type="number" placeholder="Min" value={filters.min_price} onChange={(e) => setFilters({ ...filters, min_price: e.target.value })} className="w-full border-b border-charcoal/30 bg-transparent py-1 text-sm outline-none focus:border-amber2" />
+                                <input type="number" placeholder="Max" value={filters.max_price} onChange={(e) => setFilters({ ...filters, max_price: e.target.value })} className="w-full border-b border-charcoal/30 bg-transparent py-1 text-sm outline-none focus:border-amber2" />
+                            </div>
+                            <button onClick={() => setFilters({ min_price: "", max_price: "", finish: "", style: "" })} className="mt-3 text-xs tracking-editorial text-amber2">Clear</button>
+                        </div>
+                    )}
+
                     {loading ? (
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-10">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6 md:gap-10">
                             {[1, 2, 3, 4, 5, 6].map((i) => (
                                 <div key={i} className="animate-pulse">
                                     <div className="aspect-[4/5] bg-ivory-2" />
@@ -122,16 +145,16 @@ export default function Category() {
                             ))}
                         </div>
                     ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 md:gap-10">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6 md:gap-10">
                             {products.map((p) => <ProductCard key={p.id} product={p} />)}
                         </div>
                     )}
 
                     {!loading && products.length === 0 && !error && (
-                        <div className="py-24 text-center text-muted2">
+                        <div className="py-20 sm:py-24 text-center text-muted2">
                             <div className="font-serif text-2xl text-charcoal mb-3">Coming soon</div>
                             <div>No pieces in this collection yet.</div>
-                            <Link to="/" className="tracking-editorial hover:text-amber2 mt-4 inline-block">Explore other collections →</Link>
+                            <Link to="/" className="tracking-editorial hover:text-amber2 mt-4 inline-block text-xs sm:text-sm">Explore other collections →</Link>
                         </div>
                     )}
                 </div>

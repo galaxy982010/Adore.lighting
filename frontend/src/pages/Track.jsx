@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { api, formatINR } from "@/lib/api";
+import { db } from "@/lib/supabase";
 
 const STAGES = ["pending", "paid", "shipped", "delivered"];
 const LABELS = { pending: "Received", paid: "Confirmed", shipped: "Dispatched", delivered: "Delivered" };
@@ -19,6 +20,22 @@ export default function Track() {
         if (!num) return;
         setLoading(true);
         try {
+            // First check Supabase
+            const supaOrder = await db.trackOrder(num);
+            if (supaOrder) {
+                setOrder({
+                    order_number: supaOrder.order_number,
+                    status: supaOrder.status || "paid",
+                    carrier: supaOrder.carrier || "BlueDart Express",
+                    tracking_number: supaOrder.tracking_number,
+                    created_at: supaOrder.created_at,
+                    total: supaOrder.total,
+                    items: supaOrder.items || [],
+                });
+                setPartial(null);
+                return;
+            }
+
             const r = await api.get(`/orders/track/${num}`, { params: email ? { email } : {} });
             if (r.data.requires_email) {
                 setPartial(r.data);

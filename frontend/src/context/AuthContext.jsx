@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
 
 const AuthContext = createContext(null);
 
@@ -8,32 +8,77 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const token = localStorage.getItem("adore_token");
-        if (!token) {
+        // 1. Get initial Supabase session
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session?.user) {
+                setUser({
+                    id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.user_metadata?.name || session.user.email?.split("@")[0],
+                    role: session.user.user_metadata?.role || "user",
+                });
+            }
             setLoading(false);
-            return;
-        }
-        api.get("/auth/me")
-            .then((r) => setUser(r.data))
-            .catch(() => localStorage.removeItem("adore_token"))
-            .finally(() => setLoading(false));
+        });
+
+        // 2. Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+            if (session?.user) {
+                setUser({
+                    id: session.user.id,
+                    email: session.user.email,
+                    name: session.user.user_metadata?.name || session.user.email?.split("@")[0],
+                    role: session.user.user_metadata?.role || "user",
+                });
+            } else {
+                setUser(null);
+            }
+            setLoading(false);
+        });
+
+        return () => subscription?.unsubscribe();
     }, []);
 
     const login = async (email, password) => {
-        const r = await api.post("/auth/login", { email, password });
-        localStorage.setItem("adore_token", r.data.token);
-        setUser(r.data.user);
-        return r.data.user;
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+        if (error) throw error;
+        const u = {
+            id: data.user.id,
+            email: data.user.email,
+            name: data.user.user_metadata?.name || data.user.email?.split("@")[0],
+            role: data.user.user_metadata?.role || "user",
+        };
+        setUser(u);
+        return u;
     };
 
     const register = async (name, email, password) => {
-        const r = await api.post("/auth/register", { name, email, password });
-        localStorage.setItem("adore_token", r.data.token);
-        setUser(r.data.user);
-        return r.data.user;
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: {
+                    name,
+                    role: "user",
+                },
+            },
+        });
+        if (error) throw error;
+        const u = {
+            id: data.user?.id,
+            email: data.user?.email || email,
+            name: name,
+            role: "user",
+        };
+        setUser(u);
+        return u;
     };
 
-    const logout = () => {
+    const logout = async () => {
+        await supabase.auth.signOut();
         localStorage.removeItem("adore_token");
         setUser(null);
     };

@@ -24,7 +24,7 @@ export default function Auth() {
                 navigate("/");
             }
         } catch (err) {
-            toast.error(err?.response?.data?.detail || "Please try again");
+            toast.error(err?.message || err?.response?.data?.detail || "Please try again");
         } finally {
             setLoading(false);
         }
